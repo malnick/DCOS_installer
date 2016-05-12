@@ -243,7 +243,7 @@ echo "** Generating launcher..."
 cat > $WORKING_DIR/$BOOTSTRAP_FILE << EOF
 #!/bin/bash
 #This script installs and boots DC/OS bootstrap installer.
-#Interprets that DC/OS is installed if the $WORKING_DIR/genconf/serve directory exists.
+#Interprets that DC/OS is installed if $TEST_FILE exists.
 if [ ! -f $TEST_FILE ]; then
     echo "***************************************"
     echo "*** Setting up DC/OS bootstrap node ***"
