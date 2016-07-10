@@ -235,34 +235,34 @@ dcos_overlay_network:
   vtep_subnet: 192.15.0.0/20
   vtep_mac_oui: 70:B3:D5:00:00:00
   overlays:
-   - name: dcos-1
+   - name: dcos-0
      subnet: 192.168.0.0/19
      prefix: 24
-   - name: dcos-2
+   - name: dcos-1
      subnet: 192.168.32.0/19
      prefix: 24
-   - name: dcos-3
+   - name: dcos-2
      subnet: 192.168.64.0/19
      prefix: 24
-   - name: dcos-4
+   - name: dcos-3
      subnet: 192.168.96.0/19
      prefix: 24
-   - name: dcos-5
+   - name: dcos-4
      subnet: 192.168.128.0/19
      prefix: 24
-   - name: dcos-6
+   - name: dcos-5
      subnet: 192.168.160.0/19
      prefix: 24
-   - name: dcos-7
+   - name: dcos-6
      subnet: 192.168.192.0/19
      prefix: 24
-   - name: dcos-8
+   - name: dcos-7
      subnet: 192.168.224.0/19
      prefix: 24
-   - name: dcos-9
+   - name: dcos-8
      subnet: 10.0.0.0/18
      prefix: 24
-   - name: dcos-10
+   - name: dcos-9
      subnet: 10.0.64.0/18
      prefix: 24
 superuser_password_hash: $PASSWORD_HASH
