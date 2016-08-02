@@ -145,7 +145,7 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #install docker engine, daemon and service
-sudo yum install --assumeyes --tolerant docker-engine wget curl zip unzip ipset && \
+sudo yum install --assumeyes --tolerant docker-engine-1.11.2-1.el7.centos wget curl zip unzip ipset && \
 sudo systemctl start docker && \
 sudo systemctl enable docker && \
 sudo systemctl daemon-reload
