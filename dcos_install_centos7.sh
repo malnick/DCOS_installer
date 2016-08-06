@@ -10,7 +10,7 @@
 # Modify this section as per your own installation #
 #***************************************************
 
-USERNAME=bootstrapuser
+USERNAME=root
 PASSWORD=deleteme
 DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
 CLUSTERNAME=$(hostname)"-"$(date +"%m-%d-%y")       #DEFAULT: hostname plus date
