@@ -125,7 +125,7 @@ cd $WORKING_DIR
 #Requirements
 #################################################################
 #update/upgrade
-sudo yum update --exclude=docker-engine --assumeyes --tolerant
+sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 systemctl stop firewalld &&  systemctl disable firewalld
 
 #docker with overlayfs
@@ -145,7 +145,7 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #install docker engine, daemon and service
-sudo yum install docker-engine-1.11.2-1.el7.centos wget curl zip unzip ipset && \
+sudo yum install docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset && \
 sudo systemctl start docker && \
 sudo systemctl enable docker && \
 sudo systemctl daemon-reload
@@ -407,7 +407,7 @@ fi
 
 #update system
 echo "** Updating system..."
-sudo yum update --exclude=docker-engine --assumeyes --tolerant
+sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 EOF2
 # $$ end "leave variables"
 # $$ without ticks - "translate variables on generation"
@@ -450,7 +450,7 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #install docker engine, daemon and service, along with dependencies
-sudo yum install docker-engine-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset && \
+sudo yum install docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset && \
 sudo systemctl start docker && \
 sudo systemctl enable docker && \
 sudo systemctl daemon-reload
