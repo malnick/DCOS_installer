@@ -218,9 +218,7 @@ MASTER_3=$(echo $MASTER_IP | awk -F, '{print $3}')
 cat > $WORKING_DIR/genconf/config.yaml << EOF
 bootstrap_url: http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT
 cluster_name: $CLUSTERNAME
-exhibitor_storage_backend: zookeeper
-exhibitor_zk_hosts: $BOOTSTRAP_IP:2181
-exhibitor_zk_path: /dcos
+exhibitor_storage_backend: static
 master_discovery: static
 master_list:
 $([[ $MASTER_1 != "" ]] && echo "- $MASTER_1")  \
