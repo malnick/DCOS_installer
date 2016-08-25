@@ -7,7 +7,14 @@ Installation should only require running a single command in the bootstrap node,
 
 ## Installation
 
-Download and run the script to the node that will be used as bootstrap by copying and pasting the "curl" command below.
+Download the script, and edit the first section according to the desired cluster configuration. This includes:
+
+- Adding the adequate download link for the desired version (default: latest Open DC/OS testing version available)
+- Modifying the default bootstrap username/password (default: bootstrapuser/deleteme)
+- Adjusting the security level (default: disabled)
+- Optionally, adjust the cluster name, the bootstrap's node IP address to be used, or the directory for the installer to use as storage (all these default to valid values -- modify only if required)
+
+Run the script in the node that will be used as bootstrap by copying and pasting the "curl" command below.
 The script requires to have open connectivity for the ports required for the download (configurable in the script) and for DC/OS to work properly.
 The script assumes some default values. If you wish to modify these parameters, edit the first section of the script and re-run.
 
@@ -32,7 +39,7 @@ The script will provide a command during the installation process pointing to th
 All nodes will likely have to be rebooted as part of the installation process for the dependencies to launch at startup.
 The bootstrap node will automatically launch the installation process and required services upon reboot, so once it's rebooted it will be ready to proceed. All other nodes will require a second run of the installer once the first run has satisfied the missing dependencies and forced a reboot.
 
-NOTE: The installation process can be faulty at times. If something fails, it may be due to some decompression/download failing. If that happens, just run the installer again (both in the bootstrap and in other nodes).
+NOTE: The installation process can be faulty at times. If something fails, it may be due to some decompression/download failing. If that happens, just run the same installer command again (both in the bootstrap and in other nodes).
 
 NOTE2: To know whether the installation was successful after the bootstrap node has rebooted, run:
 
