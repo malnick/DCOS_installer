@@ -13,6 +13,7 @@
 USERNAME=bootstrapuser
 PASSWORD=deleteme
 DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
+SECURITY_LEVEL="disabled" // strict|permissive|disabled
 CLUSTERNAME=$(hostname)"-"$(date +"%m-%d-%y")       #DEFAULT: hostname plus date
 BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
  '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #DEFAULT: this node's eth0
@@ -221,6 +222,7 @@ cluster_name: $CLUSTERNAME
 exhibitor_storage_backend: static
 master_discovery: static
 telemetry_enabled: false
+security: $SECURITY_LEVEL
 master_list:
 $([[ $MASTER_1 != "" ]] && echo "- $MASTER_1")  \
 $([[ $MASTER_2 != "" ]] && echo "
