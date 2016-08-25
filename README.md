@@ -43,9 +43,9 @@ NOTE: The installation process can be faulty at times. If something fails, it ma
 
 NOTE2: To know whether the installation was successful after the bootstrap node has rebooted, run:
 
-```journalctl -flu dcos-bootstrap```
+```docker ps```
 
-If you see an error, simply run the installer again.
+You should see an nginx container running on the bootstrap node. Otherwise, simply run the installer again.
 
 ## Contributing
 
