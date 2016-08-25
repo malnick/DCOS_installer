@@ -220,6 +220,7 @@ bootstrap_url: http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT
 cluster_name: $CLUSTERNAME
 exhibitor_storage_backend: static
 master_discovery: static
+telemetry_enabled: false
 master_list:
 $([[ $MASTER_1 != "" ]] && echo "- $MASTER_1")  \
 $([[ $MASTER_2 != "" ]] && echo "
