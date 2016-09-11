@@ -347,7 +347,8 @@ chmod 0755 /etc/systemd/system/$SERVICE_NAME-zk.service
 systemctl enable $SERVICE_NAME-zk.service
 
 #run local nginx server to offer installation files to nodes
-/usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro --name=dcos_int_nginx nginx
+/usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
+        --name=dcos_int_nginx nginx
 #add to systemd for automatic restart
 cat > /etc/systemd/system/$SERVICE_NAME-nginx.service << EOF
 [Unit]
