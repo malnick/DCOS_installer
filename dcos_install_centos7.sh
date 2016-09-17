@@ -149,12 +149,6 @@ sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
 
-sudo modprobe overlay && \
-sudo systemctl stop docker
-sudo systemctl daemon-reload && \
-sudo systemctl start docker && \
-sudo systemctl enable docker
-
 #Add docker override to start with Overlay driver
 mkdir -p /etc/systemd/system/docker.service.d
 cat > /etc/systemd/system/docker.service.d/override.conf << EOF
@@ -163,8 +157,14 @@ ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
 
-#Reboot if required for docker storage driver change to overlay.
-#################################################################
+sudo systemctl stop docker &&\
+sudo modprobe overlay && \
+sudo systemctl daemon-reload && \
+sudo systemctl start docker && \
+sudo systemctl enable docker
+
+#Ask for manual intervention if required for docker storage driver change to overlay.
+#####################################################################################
 if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
   echo "** ${RED}ERROR${NC}: Docker overlay driver couldn't be started automatically."
   echo -e "${BLUE}** Please copy and paste manually the command below and run this installer again."
@@ -480,12 +480,6 @@ sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
 
-sudo modprobe overlay && \
-sudo systemctl stop docker && \
-sudo systemctl daemon-reload && \
-sudo systemctl start docker && \
-sudo systemctl enable docker
-
 #Add docker override so that it starts with Overlay driver
 mkdir -p /etc/systemd/system/docker.service.d
 cat > /etc/systemd/system/docker.service.d/override.conf << EOF
@@ -494,8 +488,14 @@ ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
 
-#Reboot if required for docker storage driver change to overlay.
-#################################################################
+sudo systemctl stop docker && \
+sudo modprobe overlay && \
+sudo systemctl daemon-reload && \
+sudo systemctl start docker && \
+sudo systemctl enable docker
+
+#Ask for manual intervention if required for docker storage driver change to overlay.
+#####################################################################################
 if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
   echo "** ${RED}ERROR${NC}: Docker overlay driver couldn't be started automatically."
   echo -e "${BLUE}** Please copy and paste manually the command below and run this installer again."
