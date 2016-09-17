@@ -150,7 +150,7 @@ echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
 
 sudo modprobe overlay && \
-sudo systemctl stop docker && \
+sudo systemctl stop docker
 sudo systemctl daemon-reload && \
 sudo systemctl start docker && \
 sudo systemctl enable docker
@@ -162,6 +162,21 @@ cat > /etc/systemd/system/docker.service.d/override.conf << EOF
 ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
+
+#Reboot if required for docker storage driver change to overlay.
+#################################################################
+if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
+  echo "** Docker overlay driver couldn't be started automatically."
+  echo -e "${BLUE}** Please copy and paste manually the command below and run this installer again."
+  echo -e "${RED}systemctl stop docker && systemctl daemon-reload"
+  read -p "** Press Enter to exit..."
+  exit 1
+else
+  #run the installer as we're ready for it
+  sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
+fi
+
+
 
 #Create config directory
 sudo mkdir -p $WORKING_DIR/genconf && sudo chmod 777 $WORKING_DIR/genconf
@@ -389,6 +404,10 @@ sudo cat > $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #
 
 ROLE_FILE="/root/.mesos_role"
+#pretty colours
+RED='\033[0;31m'
+BLUE='\033[1;34m'
+NC='\033[0m' # No Color
 
 #Make sure we're running as root
 if [ "$EUID" -ne 0 ]; then
@@ -475,12 +494,17 @@ ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
 
-#Reboot if storage driver is not overlay
+#Reboot if required for docker storage driver change to overlay.
+#################################################################
 if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
-  echo "** Node needs to be rebooted for the updates to take place."
-  echo "** PLEASE RUN THE NODE INSTALLER AGAIN UPON REBOOTING."
-  read -p "** Press Enter to reboot..."
-  reboot
+  echo "** Docker overlay driver couldn't be started automatically."
+  echo -e "${BLUE}** Please copy and paste manually the command below and run this installer again."
+  echo -e "${RED}systemctl stop docker && systemctl daemon-reload"
+  read -p "** Press Enter to exit..."
+  exit 1
+else
+  #run the installer as we're ready for it
+  sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
 fi
 
 #check out if $ROLE has been defined in a previous run, ask otherwise
@@ -513,25 +537,7 @@ EOF2
 # $$ end of node installer
 #################################################################
 
-#TODO DELETE: Avoid rebooting by adding the overlay module and restarting docker
-###################################################################
-#sudo modprobe overlay
-#sudo systemctl stop docker
-#sudo systemctl daemon-reload
-#sudo systemctl start docker
-
-#Reboot if required for docker storage driver change to overlay.
-#################################################################
-if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
-  echo "** Node needs to be rebooted for the updates to take place."
-  read -p "** Press Enter to reboot..."
-  reboot
-else
-  #run the installer as we're ready for it
-  sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
-fi
-
-#Add dcos CLI to bootstrap node.
+#TODO: Add dcos CLI to bootstrap node.
 ################################
 
 
