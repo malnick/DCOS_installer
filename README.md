@@ -1,11 +1,11 @@
 # DC/OS installer
 
-This is a script to install DC/OS on baremetal nodes or VM instances. It downloads all dependencies, checks for configuration parameters, autogenerates all required configuration files and finally completes the bootstrap node installation.
-It also generates another script to be ran (copied and pasted) in all other nodes in the cluster (master/slave/public_slave). This downloads all dependencies and completes the node installation automatically.
+This is a script to install DC/OS on baremetal nodes or VM instances. It downloads all dependencies, checks for configuration parameters, autogenerates all required configuration files and finally completes the *`bootstrap`* node installation.
+It also generates another script to be ran (copied and pasted) in all other nodes in the cluster (*`master`*/*`slave`*/*`public_slave`*). This downloads all dependencies and completes the node installation automatically.
 
-Installation should only require running a single command in the bootstrap node, and copying & pasting the resulting command in each additional node of the cluster.
+Installation should only require running a single command in the *`bootstrap`* node, and copying & pasting the resulting command in each additional node of the cluster.
 
-This installer is a simplified and scripted version of the **[official DC/OS Advanced Installer](https://docs.mesosphere.com/1.8/administration/installing/custom/advanced/)** method:. Before using this script, you should make sure to be familiar with that installation method. This includes understanding the roles of each node type, including the *`bootstrap`* node, the *`master`* node(s), the (private) *`slave`* node(s), and the *`public_slave`* node(s).
+This installer is a simplified and scripted version of the **[official DC/OS Advanced Installer](https://docs.mesosphere.com/1.8/administration/installing/custom/advanced/)** method. Before using this script, you should make sure to be familiar with that installation method. This includes understanding the roles of each node type, including the *`bootstrap`* node, the *`master`* node(s), the (private) *`slave`* node(s), and the *`public_slave`* node(s).
 
 ## Installation
 
