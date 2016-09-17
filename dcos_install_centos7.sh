@@ -540,7 +540,6 @@ EOF2
 
 #Check that installation finished successfully.
 #################################################################
-sleep 5
 if [ -f $TEST_FILE ]; then
   echo -e "** ${BLUE}SUCCESS${NC}. Bootstrap node installed."
   echo -e "** ${BLUE}COPY AND PASTE THIS INTO EACH NODE OF THE CLUSTER TO INSTALL DC/OS ON IT:"
