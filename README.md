@@ -23,14 +23,14 @@ The script assumes some default values. If you wish to modify these parameters, 
 IMPORTANT: Run as root in the bootstrap node. Do "sudo su", "cd", then run the commands.
 Do NOT "sudo command" instead.
 
-Login as root to the bootstrap node, and download+run the script:
+Direct Installation with default parameters including **"testing" Open Source DC/OS** branch, simply login as root to the bootstrap node, and download+run the script::
 
 ```
 sudo su
 cd
 source <(curl https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh)
 ```
-IMPORTANT: The script will install the latest **"testing" Open Source DC/OS** branch. For other versions/releases, edit the script before running it and update the download link:
+ For other versions, releases, or installation options (such as **Enterprise DC/OS**), edit the script before running it and modify the required parameters:
 ```
 sudo su
 cd
