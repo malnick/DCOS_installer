@@ -23,7 +23,7 @@ The script assumes some default values. If you wish to modify these parameters, 
 IMPORTANT: Run as root in the bootstrap node. Do "sudo su", "cd", then run the commands.
 Do NOT "sudo command" instead.
 
-Download the script to the bootstrap node, login as root and run it:
+Login as root to the bootstrap node, and download and run the script:
 
 ```
 sudo su
