@@ -9,7 +9,7 @@ This installer is a simplified and scripted version of the **[official DC/OS Adv
 
 ***THIS SCRIPT IS PROVIDED "AS IS", AND HAS ABSOLUTELY NO WARRANTY OR SUPPORT. USE AT YOUR OWN RISK.***
 
-## Installation
+## Usage
 
 Download and run the script. Optionally, edit the first section according to the desired cluster configuration. This includes:
 
@@ -21,8 +21,6 @@ Download and run the script. Optionally, edit the first section according to the
 Run the script in the node that will be used as bootstrap by copying and pasting the `curl` command below.
 The script requires to have open connectivity for the ports required for the download (configurable in the script) and for DC/OS to work properly.
 The script assumes some default values. If you wish to modify these parameters, edit the first section of the script and re-run.
-
-## Usage
 
 **IMPORTANT**: Run as root in the bootstrap node. Do `sudo su`, `cd`, then run the commands.
 Do NOT `sudo command` instead.
