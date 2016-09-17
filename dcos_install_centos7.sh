@@ -527,6 +527,10 @@ else
   sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
 fi
 
+#Add dcos CLI to bootstrap node.
+################################
+
+
 #Check that installation finished successfully.
 #################################################################
 if [ -f $TEST_FILE ]; then
