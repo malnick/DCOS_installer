@@ -300,7 +300,7 @@ if [ ! -f $TEST_FILE ]; then
     echo "*** Setting up DC/OS bootstrap node ***"
     echo "***.................................***"
     cd $WORKING_DIR
-    /bin/bash $WORKING_DIR/$INSTALLER_FILE
+    /bin/bash $WORKING_DIR/$INSTALLER_FILE && \
     if [ -f $TEST_FILE ]; then
       echo "***************************************"
       echo -e "* ${BLUE}SUCCESS${NC}. DC/OS bootstrap node ${BLUE}READY${NC} *"
