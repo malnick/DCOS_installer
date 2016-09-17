@@ -14,7 +14,7 @@ Download and run the script. Optionally, edit the first section according to the
 - Adjusting the security level (default: **permissive**)
 - Optionally, adjust the cluster name, the bootstrap's node IP address to be used, or the directory for the installer to use as storage (all these default to valid values -- modify only if required)
 
-Run the script in the node that will be used as bootstrap by copying and pasting the "curl" command below.
+Run the script in the node that will be used as bootstrap by copying and pasting the `curl` command below.
 The script requires to have open connectivity for the ports required for the download (configurable in the script) and for DC/OS to work properly.
 The script assumes some default values. If you wish to modify these parameters, edit the first section of the script and re-run.
 
