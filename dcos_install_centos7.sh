@@ -32,6 +32,10 @@ COMMAND_FILE=node_command.sh
 TEST_FILE=$WORKING_DIR/genconf/serve/dcos_install.sh
 MASTER_IP_FILE=$WORKING_DIR/.masterip
 UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
+#pretty colours
+RED='\033[0;31m'
+BLUE='\033[1;34m'
+NC='\033[0m' # No Color
 
 # Pre-checks
 #################################################################
@@ -535,6 +539,11 @@ fi
 #################################################################
 if [ -f $TEST_FILE ]; then
   echo "** SUCCESS. Bootstrap node installed."
+  echo "${BLUE}** COPY THE COMMAND BELOW AND RUN IN CLUSTER NODES TO INSTALL:"
+  echo ""
+  #open up a tab with the public node:
+  MESSAGE=$'Open up a tab pointing to: \n'
+  echo -e "${RED}curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC}"
   exit 1
 else
   echo "** Bootstrap node installation FAILED."
