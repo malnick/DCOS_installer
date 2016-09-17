@@ -136,9 +136,6 @@ systemctl stop firewalld &&  systemctl disable firewalld
 #docker with overlayfs
 echo "** Configuring docker..."
 
-echo 'overlay'\
->> /etc/modules-load.d/overlay.conf
-
 #Add docker repo
 sudo cat > /etc/yum.repos.d/docker.repo << 'EOF'
 [dockerrepo]
@@ -153,6 +150,9 @@ EOF
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset
 
 #Add Overlay storage driver and restart docker
+echo 'overlay'\
+>> /etc/modules-load.d/overlay.conf
+
 sudo modprobe overlay && \
 sudo systemctl stop docker && \
 sudo systemctl daemon-reload && \
@@ -461,11 +461,15 @@ EOF
 #Install docker engine, daemon and service, along with dependencies
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset && 
 
-#Add overlay module to running system and start docker
-sudo modprobe overlay
-sudo systemctl stop docker
-sudo systemctl daemon-reload
-sudo systemctl start docker
+#Add Overlay storage driver and restart docker
+echo 'overlay'\
+>> /etc/modules-load.d/overlay.conf
+
+sudo modprobe overlay && \
+sudo systemctl stop docker && \
+sudo systemctl daemon-reload && \
+sudo systemctl start docker && \
+sudo systemctl enable docker
 
 #Add docker override so that it starts with Overlay driver
 mkdir -p /etc/systemd/system/docker.service.d
