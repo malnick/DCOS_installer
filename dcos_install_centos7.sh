@@ -545,10 +545,12 @@ EOF2
 #################################################################
 if [ -f $TEST_FILE ]; then
   echo -e "** ${BLUE}SUCCESS${NC}. Bootstrap node installed."
-  echo -e "${BLUE}** COPY THE COMMAND BELOW AND RUN IN CLUSTER NODES TO INSTALL:"
+  echo -e "** ${BLUE}COPY THE COMMAND BELOW AND RUN IN CLUSTER NODES TO INSTALL:"
+  echo -e ""
   echo -e "${RED}sudo su"
   echo -e "cd"
   echo -e "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC}"
+  echo -e ""
   exit 1
 else
   echo -e "** Bootstrap node installation ${RED}FAILED${NC}."
