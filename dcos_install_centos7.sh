@@ -105,14 +105,10 @@ while true; do
   read -p "** Are these parameters correct?: (y/n): " REPLY
   case $REPLY in
     [yY]) echo ""
-          echo "** COPY THE COMMAND BELOW AND RUN IN CLUSTER NODES TO INSTALL (AFTER THIS INSTALLER HAS COMPLETED):"
-          echo ""
-          echo "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER"
           echo "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER" \
            > $WORKING_DIR/$COMMAND_FILE  #for future use (node additions)
           echo ""
-          echo "** Command saved in $WORKING_DIR/$COMMAND_FILE for future use."
-          read -p "** Press ENTER to proceed with installation..."
+          echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
     [nN]) echo "** Aborting. Please edit the required values in the installer file then run this script again"
