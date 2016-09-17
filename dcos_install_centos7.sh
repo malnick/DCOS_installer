@@ -526,8 +526,8 @@ sudo bash /tmp/dcos/dcos_install.sh $ROLE
 
 ERROR=$(systemctl status dcos-setup | tail -n1 | grep "Job dcos-setup.service/start failed")
 if [[ $ERROR = *[!\ ]* ]]; then
-  echo "** ERROR: "$ERROR
-  echo "** Node installation FAILED. This is likely due to download or unpacking glitches. Please run the installer again"
+  echo -e "** ${RED}ERROR${NC}: "$ERROR
+  echo -e "** Node installation ${RED}FAILED${NC}. This is likely due to download or unpacking glitches. Please ${BLUE}run the installer again${NC}"
   exit 0
 else
   echo "** Node installed successfully."
@@ -544,21 +544,20 @@ EOF2
 #Check that installation finished successfully.
 #################################################################
 if [ -f $TEST_FILE ]; then
-  echo "** SUCCESS. Bootstrap node installed."
+  echo -e "** ${BLUE}SUCCESS${NC}. Bootstrap node installed."
   echo -e "${BLUE}** COPY THE COMMAND BELOW AND RUN IN CLUSTER NODES TO INSTALL:"
-  echo ""
-  #open up a tab with the public node:
-  MESSAGE=$'Open up a tab pointing to: \n'
-  echo -e "${RED}curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC}"
+  echo -e "${RED}sudo su"
+  echo -e "cd"
+  echo -e "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC}"
   exit 1
 else
-  echo "** Bootstrap node installation FAILED."
+  echo -e "** Bootstrap node installation ${RED}FAILED${NC}."
   echo "** Deleting temporary files..."
   #remove password hash so that it's calculated again
   rm $PASSWORD_HASH_FILE
   #remove calculated unpacked tar file (assuming decompression/hashing failed)
   rm $UNPACKED_INSTALLER_FILE
-  #FIXME: possibly also removed downloaded installer (assuming download failed)
-  echo "** Temporary files deleted. Please run the installer again."
+  #TODO FIXME: possibly also removed downloaded installer (assuming download failed)
+  echo -e "** Temporary files deleted. Please ${BLUE}run the installer again${NC}."
   exit 0
 fi
