@@ -23,8 +23,6 @@ The script assumes some default values. If you wish to modify these parameters, 
 IMPORTANT: Run as root in the bootstrap node. Do "sudo su", "cd", then run the commands.
 Do NOT "sudo command" instead.
 
-IMPORTANT: The script will install the latest "testing" Open Source DC/OS branch. For other versions/releases, edit the script before running it and update the download link.
-
 Login as root to the bootstrap node, and download and run the script:
 
 ```
@@ -32,6 +30,14 @@ sudo su
 cd
 source <(curl https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh)
 ```
+IMPORTANT: The script will install the latest "testing" Open Source DC/OS branch. For other versions/releases, edit the script before running it and update the download link:
+```
+sudo su
+cd
+curl -O https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh
+vi dcos_install_centos7.sh +15
+```
+
 
 The script will provide a command during the installation process pointing to the node installer script in the bootstrap node, to be copied & pasted in the cluster nodes for installation. The format will be:
 
