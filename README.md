@@ -23,6 +23,8 @@ The script assumes some default values. If you wish to modify these parameters, 
 IMPORTANT: Run as root in the bootstrap node. Do "sudo su", "cd", then run the commands.
 Do NOT "sudo command" instead.
 
+IMPORTANT: The script will install the latest "testing" Open Source DC/OS branch. For other versions/releases, edit the script before running it and update the download link.
+
 Login as root to the bootstrap node, and download and run the script:
 
 ```
