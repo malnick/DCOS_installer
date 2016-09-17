@@ -5,6 +5,8 @@ It also generates another script to be ran (copied and pasted) in all other node
 
 Installation should only require running a single command in the bootstrap node, and copying & pasting the resulting command in each additional node of the cluster.
 
+This installer is a simplified and scripted version of the **[official DC/OS Advanced Installer](https://docs.mesosphere.com/1.8/administration/installing/custom/advanced/)** method:. Before using this script, you should make sure to be familiar with that installation method. This includes understanding the roles of each node type, including the *`bootstrap`* node, the *`master`* node(s), the (private) *`slave`* node(s), and the *`public_slave`* node.
+
 ## Installation
 
 Download and run the script. Optionally, edit the first section according to the desired cluster configuration. This includes:
