@@ -125,7 +125,7 @@ cd $WORKING_DIR
 
 #Requirements
 #################################################################
-#update/upgrade
+#Update/upgrade
 sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 systemctl stop firewalld &&  systemctl disable firewalld
 
@@ -135,7 +135,7 @@ echo "** Configuring docker..."
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
 
-#add docker repo
+#Add docker repo
 sudo cat > /etc/yum.repos.d/docker.repo << 'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -145,13 +145,17 @@ gpgcheck=1
 gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
-#install docker engine, daemon and service
-sudo yum install docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset && \
-sudo systemctl start docker && \
-sudo systemctl enable docker && \
-sudo systemctl daemon-reload
+#Install docker engine, daemon and service
+sudo yum install docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset
 
-#add docker override so that it starts with Overlay driver
+#Add Overlay storage driver and restart docker
+sudo modprobe overlay && \
+sudo systemctl stop docker && \
+sudo systemctl daemon-reload && \
+sudo systemctl start docker && \
+sudo systemctl enable docker
+
+#Add docker override to start with Overlay driver
 mkdir -p /etc/systemd/system/docker.service.d
 cat > /etc/systemd/system/docker.service.d/override.conf << EOF
 [Service]
@@ -159,10 +163,10 @@ ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
 
-#create config directory
+#Create config directory
 sudo mkdir -p $WORKING_DIR/genconf && sudo chmod 777 $WORKING_DIR/genconf
 
-#ip-detect script
+#IP-detect script
 #################################################################
 #Detect if I am running on amazon. Use corresponding ip-detect script
 if [ -f /sys/hypervisor/uuid ] && [ `head -c 3 /sys/hypervisor/uuid` == ec2 ];
@@ -184,7 +188,7 @@ echo $(ip addr show eth0 | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1
 EOF
 fi
 
-#installer
+#Installer
 #################################################################
 #check whether the "dcos_generate_config.sh" script exists, download otherwise
 if [[ ! -f $WORKING_DIR/$INSTALLER_FILE ]] ; then
@@ -206,7 +210,7 @@ fi
 PASSWORD_HASH=`cat $PASSWORD_HASH_FILE`
 
 
-#generate configuration files
+#Generate configuration files
 #################################################################
 echo "** Generating configuration file..."
 
@@ -297,14 +301,14 @@ if [ ! -f $TEST_FILE ]; then
     fi
 fi
 EOF
-#make file executable
+#Make file executable
 chmod 0755 $WORKING_DIR/$BOOTSTRAP_FILE
 
-#add services to startup
+#Add services to startup
 #################################################################
 echo "** Adding services to startup..."
 
-#create systemd unit file to start at reboot
+#Create systemd unit file for installer to start at reboot
 cat > /etc/systemd/system/$SERVICE_NAME.service << EOF
 [Unit]
 Description=$SERVICE_NAME server
@@ -321,35 +325,35 @@ KillMode=process
 [Install]
 WantedBy=multi-user.target
 EOF
-#enable service so that it's run at reboot
+#Enable service so that it's run upon reboot
 chmod 0755 /etc/systemd/system/$SERVICE_NAME.service
 systemctl enable $SERVICE_NAME.service
 
-#bootstrap services inside docker containers equired for installer and serving nodes.
-#run local zookeeper instance for temporary storage of installer
-/usr/bin/docker run -d -p 2181:2181 -p 2888:2888 -p 3888:3888 -v /var/zookeeper/dcos:/tmp/zookeeper --name=dcos_int_zk jplock/zookeeper
-#add to systemd for automatic restart
-cat > /etc/systemd/system/$SERVICE_NAME-zk.service << EOF
-[Unit]
-Description=$SERVICE_NAME zookeeper container
-Requires=docker.service
-After=docker.service
-[Service]
-Type=forking
-Restart=always
-RestartSec=5
-ExecStart=/usr/bin/docker start -a dcos_int_zk
-ExecStop=/usr/bin/docker stop -t 2 dcos_int_zk
-[Install]
-WantedBy=multi-user.target
-EOF
-chmod 0755 /etc/systemd/system/$SERVICE_NAME-zk.service
-systemctl enable $SERVICE_NAME-zk.service
+#Bootstrap services inside docker containers equired for installer and serving nodes.
+#TODO DELETE: Run local zookeeper instance for temporary storage of installer -- TO BE REMOVED
+#/usr/bin/docker run -d -p 2181:2181 -p 2888:2888 -p 3888:3888 -v /var/zookeeper/dcos:/tmp/zookeeper --name=dcos_int_zk jplock/zookeeper
+#Add to systemd for automatic restart
+#cat > /etc/systemd/system/$SERVICE_NAME-zk.service << EOF
+#[Unit]
+#Description=$SERVICE_NAME zookeeper container
+#Requires=docker.service
+#After=docker.service
+#[Service]
+#Type=forking
+#Restart=always
+#RestartSec=5
+#ExecStart=/usr/bin/docker start -a dcos_int_zk
+#ExecStop=/usr/bin/docker stop -t 2 dcos_int_zk
+#[Install]
+#WantedBy=multi-user.target
+#EOF
+#chmod 0755 /etc/systemd/system/$SERVICE_NAME-zk.service
+#systemctl enable $SERVICE_NAME-zk.service
 
-#run local nginx server to offer installation files to nodes
+#Run local nginx server to offer installation files to nodes
 /usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
         --name=dcos_int_nginx nginx
-#add to systemd for automatic restart
+#Add to systemd for automatic restart
 cat > /etc/systemd/system/$SERVICE_NAME-nginx.service << EOF
 [Unit]
 Description=$SERVICE_NAME nginx container
@@ -369,7 +373,7 @@ systemctl enable $SERVICE_NAME-nginx.service
 
 systemctl daemon-reload
 
-#generate agent launcher so that agents just have to:
+#Generate agent launcher so that agents just have to:
 #sudo bash <(curl -s $BOOTSTRAP_IP:$BOOTSTRAP_PORT)
 #################################################################
 echo "** Generating agent launcher..."
@@ -386,7 +390,7 @@ sudo cat > $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
 ROLE_FILE="/root/.mesos_role"
 
-# make sure we're running as root
+#Make sure we're running as root
 if [ "$EUID" -ne 0 ]; then
   echo "** Please run as root. Exiting."
   exit
@@ -399,7 +403,7 @@ echo "** Setting up installation directory.."
 mkdir -p /tmp/dcos
 cd /tmp/dcos
 
-#make sure there's an internet connection
+#Make sure there's an internet connection
 if ping -q -c 1 -W 1 google.com >/dev/null; then
   echo "** Internet connectivity is working."
 else
@@ -407,7 +411,7 @@ else
   exit 0
 fi
 
-#update system
+#Update system
 echo "** Updating system..."
 sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 EOF2
@@ -418,6 +422,7 @@ sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 echo "** Downloading installer from $BOOTSTRAP_IP..."
 curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/dcos_install.sh
 
+#Requirements
 sudo groupadd nogroup &&
 
 echo "** Disabling IPv6..."
@@ -430,7 +435,7 @@ setenforce 0
 
 echo "** Installing dependencies..."
 
-####docker with overlayfs
+#Docker with overlayfs
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
 
@@ -439,7 +444,7 @@ EOF2
 # $$ start "leave variables"
 sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
-#add docker repo
+#Add docker repo
 sudo tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -449,13 +454,16 @@ gpgcheck=1
 gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
-#install docker engine, daemon and service, along with dependencies
-sudo yum install docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset && \
-sudo systemctl start docker && \
-sudo systemctl enable docker && \
-sudo systemctl daemon-reload
+#Install docker engine, daemon and service, along with dependencies
+sudo yum install docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset && 
 
-#add docker override so that it starts with Overlay driver
+#Add overlay module to running system and start docker
+sudo modprobe overlay
+sudo systemctl stop docker
+sudo systemctl daemon-reload
+sudo systemctl start docker
+
+#Add docker override so that it starts with Overlay driver
 mkdir -p /etc/systemd/system/docker.service.d
 cat > /etc/systemd/system/docker.service.d/override.conf << EOF
 [Service]
@@ -463,7 +471,7 @@ ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
 
-#reboot if storage driver is not overlay
+#Reboot if storage driver is not overlay
 if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
   echo "** Node needs to be rebooted for the updates to take place."
   echo "** PLEASE RUN THE NODE INSTALLER AGAIN UPON REBOOTING."
@@ -500,6 +508,13 @@ fi
 EOF2
 # $$ end of node installer
 #################################################################
+
+#TODO DELETE: Avoid rebooting by adding the overlay module and restarting docker
+###################################################################
+#sudo modprobe overlay
+#sudo systemctl stop docker
+#sudo systemctl daemon-reload
+#sudo systemctl start docker
 
 #Reboot if required for docker storage driver change to overlay.
 #################################################################
