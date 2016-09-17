@@ -70,11 +70,8 @@ cd $WORKING_DIR
 #Parameter parsing, edit and confirmation
 #################################################################
 echo ""
-echo "********* USAGE: [ sudo su ], THEN [ bash dcos_install_centos7.sh ] **********"
-echo "                ([ sudo bash dcos_install_centos7.sh ] WILL FAIL. )"
-echo ""
 echo "******************************************************************************"
-echo "***************************** Welcome to DC/OS *******************************"
+echo "***************************** ${BLUE}Welcome to DC/OS${NC} *******************************"
 echo "******************************************************************************"
 echo ""
 
