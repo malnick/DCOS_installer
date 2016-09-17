@@ -20,8 +20,8 @@ The script assumes some default values. If you wish to modify these parameters, 
 
 ## Usage
 
-IMPORTANT: Run as root in the bootstrap node. Do "sudo su", "cd", then run the commands.
-Do NOT "sudo command" instead.
+IMPORTANT: Run as root in the bootstrap node. Do `sudo su`, `cd`, then run the commands.
+Do NOT `sudo command` instead.
 
 Direct Installation with default parameters including **"testing" Open Source DC/OS** branch, simply login as root to the bootstrap node, and download+run the script::
 
