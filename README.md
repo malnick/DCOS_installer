@@ -10,8 +10,8 @@ Installation should only require running a single command in the bootstrap node,
 Download and run the script. Optionally, edit the first section according to the desired cluster configuration. This includes:
 
 - Adding the adequate *download link for the desired version* (default: latest **Open DC/OS testing** version available)
-- Modifying the default bootstrap username/password (default: bootstrapuser/deleteme)
-- Adjusting the security level (default: disabled)
+- Modifying the default bootstrap username/password (default: **bootstrapuser/deleteme**)
+- Adjusting the security level (default: **permissive**)
 - Optionally, adjust the cluster name, the bootstrap's node IP address to be used, or the directory for the installer to use as storage (all these default to valid values -- modify only if required)
 
 Run the script in the node that will be used as bootstrap by copying and pasting the "curl" command below.
