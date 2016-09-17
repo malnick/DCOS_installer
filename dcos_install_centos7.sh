@@ -428,8 +428,6 @@ echo "** Disabling SELinux..."
 sed -i s/SELINUX=enforcing/SELINUX=permissive/g /etc/selinux/config
 setenforce 0
 
-sudo groupadd nogroup &&
-
 echo "** Installing dependencies..."
 
 ####docker with overlayfs
