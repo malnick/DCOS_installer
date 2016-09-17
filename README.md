@@ -28,8 +28,7 @@ Download the script to the bootstrap node, login as root and run it:
 ```
 sudo su
 cd
-curl -O https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh \
-&& bash dcos_install_centos7.sh
+source <(curl https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh)
 ```
 
 The script will provide a command during the installation process pointing to the node installer script in the bootstrap node, to be copied & pasted in the cluster nodes for installation. The format will be:
