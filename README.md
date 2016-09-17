@@ -7,9 +7,9 @@ Installation should only require running a single command in the bootstrap node,
 
 ## Installation
 
-Download the script, and edit the first section according to the desired cluster configuration. This includes:
+Download and run the script. Optionally, edit the first section according to the desired cluster configuration. This includes:
 
-- Adding the adequate download link for the desired version (default: latest Open DC/OS testing version available)
+- Adding the adequate *download link for the desired version* (default: latest **Open DC/OS testing** version available)
 - Modifying the default bootstrap username/password (default: bootstrapuser/deleteme)
 - Adjusting the security level (default: disabled)
 - Optionally, adjust the cluster name, the bootstrap's node IP address to be used, or the directory for the installer to use as storage (all these default to valid values -- modify only if required)
@@ -30,7 +30,7 @@ sudo su
 cd
 source <(curl https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh)
 ```
-IMPORTANT: The script will install the latest "testing" Open Source DC/OS branch. For other versions/releases, edit the script before running it and update the download link:
+IMPORTANT: The script will install the latest **"testing" Open Source DC/OS** branch. For other versions/releases, edit the script before running it and update the download link:
 ```
 sudo su
 cd
