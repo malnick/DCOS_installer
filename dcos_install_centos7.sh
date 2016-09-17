@@ -166,9 +166,9 @@ EOF
 #Reboot if required for docker storage driver change to overlay.
 #################################################################
 if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
-  echo "** Docker overlay driver couldn't be started automatically."
+  echo "** ${RED}ERROR${NC}: Docker overlay driver couldn't be started automatically."
   echo -e "${BLUE}** Please copy and paste manually the command below and run this installer again."
-  echo -e "${RED}systemctl stop docker && systemctl daemon-reload"
+  echo -e "${RED}systemctl stop docker && systemctl daemon-reload${NC}"
   read -p "** Press Enter to exit..."
   exit 1
 else
@@ -497,9 +497,9 @@ EOF
 #Reboot if required for docker storage driver change to overlay.
 #################################################################
 if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
-  echo "** Docker overlay driver couldn't be started automatically."
+  echo "** ${RED}ERROR${NC}: Docker overlay driver couldn't be started automatically."
   echo -e "${BLUE}** Please copy and paste manually the command below and run this installer again."
-  echo -e "${RED}systemctl stop docker && systemctl daemon-reload"
+  echo -e "${RED}systemctl stop docker && systemctl daemon-reload${NC}"
   read -p "** Press Enter to exit..."
   exit 1
 else
