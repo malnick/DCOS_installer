@@ -7,7 +7,7 @@ Installation should only require running a single command in the *`bootstrap`* n
 
 This installer is a simplified and scripted version of the **[official DC/OS Advanced Installation process](https://docs.mesosphere.com/1.8/administration/installing/custom/advanced/)**. Before using this script, you should make sure to be familiar with that installation method. This includes understanding the roles of each node type, including the *`bootstrap`* node, the *`master`* node(s), the (private) *`slave`* node(s), and the *`public_slave`* node(s).
 
-***THIS SCRIPT IS PROVIDED "AS IS". THIS HAS BEEN WRITTEN FOR MY PERSONAL USE AND LEARNING, AND HAS ABSOLUTELY NO WARRANTIES OR SUPPORT. USE AT YOUR OWN RISK.***
+***THIS SCRIPT IS PROVIDED "AS IS", AND HAS ABSOLUTELY NO WARRANTIES OR SUPPORT. USE AT YOUR OWN RISK.***
 
 ## Installation
 
