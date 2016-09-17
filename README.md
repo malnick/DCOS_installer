@@ -35,6 +35,7 @@ source <(curl https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_instal
 sudo su
 cd
 curl -O https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh
+#Edit download link
 vi dcos_install_centos7.sh +15
 ```
 Edit the installation file as required (including download link) and then:
