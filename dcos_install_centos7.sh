@@ -306,11 +306,11 @@ if [ ! -f $TEST_FILE ]; then
     /bin/bash $WORKING_DIR/$INSTALLER_FILE
     if [ -f $TEST_FILE ]; then
       echo "***************************************"
-      echo "* SUCCESS. DC/OS bootstrap node READY *"
+      echo -e "* ${BLUE}SUCCESS${NC}. DC/OS bootstrap node ${BLUE}READY${NC} *"
       echo "***************************************"
     else
       echo "*******************************************"
-      echo "***** DC/OS bootstrap install FAILED. *****"
+      echo -e "***** DC/OS bootstrap install ${RED}FAILED${NC}. *****"
       echo "***** Please run the installer again. *****"
       echo "*******************************************"
     fi
@@ -545,7 +545,7 @@ EOF2
 #################################################################
 if [ -f $TEST_FILE ]; then
   echo "** SUCCESS. Bootstrap node installed."
-  echo "${BLUE}** COPY THE COMMAND BELOW AND RUN IN CLUSTER NODES TO INSTALL:"
+  echo -e "${BLUE}** COPY THE COMMAND BELOW AND RUN IN CLUSTER NODES TO INSTALL:"
   echo ""
   #open up a tab with the public node:
   MESSAGE=$'Open up a tab pointing to: \n'
