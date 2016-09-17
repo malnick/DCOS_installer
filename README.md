@@ -23,7 +23,7 @@ The script assumes some default values. If you wish to modify these parameters, 
 IMPORTANT: Run as root in the bootstrap node. Do "sudo su", "cd", then run the commands.
 Do NOT "sudo command" instead.
 
-Login as root to the bootstrap node, and download and run the script:
+Login as root to the bootstrap node, and download+run the script:
 
 ```
 sudo su
@@ -37,7 +37,10 @@ cd
 curl -O https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh
 vi dcos_install_centos7.sh +15
 ```
-
+EDIT FILE AS REQUIRED, THEN:
+```
+bash dcos_install_centos7.sh
+```
 
 The script will provide a command during the installation process pointing to the node installer script in the bootstrap node, to be copied & pasted in the cluster nodes for installation. The format will be:
 
