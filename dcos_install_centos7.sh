@@ -41,7 +41,7 @@ NC='\033[0m' # No Color
 
 # Pre-checks
 #################################################################
-# make sure we're running as root
+#make sure we're running as root
 if [ "$EUID" -ne 0 ]; then
   echo "** Please run as root. Exiting."
   exit
@@ -64,7 +64,7 @@ else
   exit
 fi
 
-#Get to $WORKING_DIR
+#get to $WORKING_DIR
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
 
@@ -124,14 +124,12 @@ cd $WORKING_DIR
 
 #Requirements
 #################################################################
-#Update/upgrade
+#update/upgrade
 sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 systemctl stop firewalld &&  systemctl disable firewalld
 
-#docker with overlayfs
-echo "** Configuring docker..."
-
-#Add docker repo
+#DOCKER REQUIREMENTS
+#add docker repo
 sudo cat > /etc/yum.repos.d/docker.repo << 'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -141,14 +139,14 @@ gpgcheck=1
 gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
-#Install docker engine, daemon and service
+#docker engine with selinux and other requirements
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset
 
-#Add Overlay storage driver and restart docker
+#add overlay storage driver to kernel modules
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
 
-#Add docker override to start with Overlay driver
+#docker override to boot with overlay storage driver
 mkdir -p /etc/systemd/system/docker.service.d
 cat > /etc/systemd/system/docker.service.d/override.conf << EOF
 [Service]
@@ -156,6 +154,7 @@ ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
 
+#restart docker with overlay driver and new configuration
 sudo systemctl stop docker &&\
 sudo modprobe overlay && \
 sudo systemctl daemon-reload && \
@@ -175,14 +174,13 @@ else
   sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
 fi
 
-
-
 #Create config directory
+########################
 sudo mkdir -p $WORKING_DIR/genconf && sudo chmod 777 $WORKING_DIR/genconf
 
 #IP-detect script
 #################################################################
-#Detect if I am running on amazon. Use corresponding ip-detect script
+#detect if I am running on amazon or local, use corresponding ip-detect script
 if [ -f /sys/hypervisor/uuid ] && [ `head -c 3 /sys/hypervisor/uuid` == ec2 ];
 then
 echo "** This is an EC2 instance. Using metadata to detect my IP."
@@ -315,14 +313,14 @@ if [ ! -f $TEST_FILE ]; then
     fi
 fi
 EOF
-#Make file executable
+#make file executable
 chmod 0755 $WORKING_DIR/$BOOTSTRAP_FILE
 
 #Add services to startup
 #################################################################
 echo "** Adding services to startup..."
 
-#Create systemd unit file for installer to start at reboot
+#create systemd unit file for installer to start at reboot
 cat > /etc/systemd/system/$SERVICE_NAME.service << EOF
 [Unit]
 Description=$SERVICE_NAME server
@@ -339,14 +337,15 @@ KillMode=process
 [Install]
 WantedBy=multi-user.target
 EOF
-#Enable service so that it's run upon reboot
+#enable service so that it's run upon reboot
 chmod 0755 /etc/systemd/system/$SERVICE_NAME.service
 systemctl enable $SERVICE_NAME.service
 
-#Run local nginx server to offer installation files to nodes
+#run local nginx server to offer installation files to nodes
 /usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
         --name=$NGINX_NAME nginx
-#Add to systemd for automatic restart
+
+#add to systemd to run at boot time
 cat > /etc/systemd/system/$SERVICE_NAME-nginx.service << EOF
 [Unit]
 Description=$SERVICE_NAME nginx container
@@ -440,7 +439,7 @@ EOF2
 # $$ start "leave variables"
 sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
-#Add docker repo
+#add docker repo
 sudo tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
@@ -450,14 +449,14 @@ gpgcheck=1
 gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
-#Install docker engine, daemon and service, along with dependencies
+#install docker engine, daemon and service, along with dependencies
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset && 
 
-#Add Overlay storage driver and restart docker
+#add overlay storage driver
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
 
-#Add docker override so that it starts with Overlay driver
+#add docker override so that it starts with overlay storage driver
 mkdir -p /etc/systemd/system/docker.service.d
 cat > /etc/systemd/system/docker.service.d/override.conf << EOF
 [Service]
@@ -465,6 +464,7 @@ ExecStart=
 ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
 EOF
 
+#restart docker with overlay storage driver
 sudo systemctl stop docker && \
 sudo modprobe overlay && \
 sudo systemctl daemon-reload && \
@@ -480,7 +480,7 @@ if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]];
   read -p "** Press Enter to exit..."
   exit 1
 else
-  #run the installer as we're ready for it
+  #run the installer
   sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
 fi
 
