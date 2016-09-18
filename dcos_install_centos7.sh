@@ -32,6 +32,7 @@ COMMAND_FILE=node_command.sh
 TEST_FILE=$WORKING_DIR/genconf/serve/dcos_install.sh
 MASTER_IP_FILE=$WORKING_DIR/.masterip
 UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
+NGINX_NAME=dcos_int_nginx
 #pretty colours
 RED='\033[0;31m'
 BLUE='\033[1;34m'
@@ -343,7 +344,7 @@ systemctl enable $SERVICE_NAME.service
 
 #Run local nginx server to offer installation files to nodes
 /usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
-        --name=dcos_int_nginx nginx
+        --name=$NGINX_NAME nginx
 #Add to systemd for automatic restart
 cat > /etc/systemd/system/$SERVICE_NAME-nginx.service << EOF
 [Unit]
@@ -535,7 +536,7 @@ else
   #remove calculated unpacked tar file (assuming decompression/hashing failed)
   rm $UNPACKED_INSTALLER_FILE
   #remove nginx container
-  sudo docker rm -f dcos_int_nginx
+  sudo docker rm -f $NGINX_NAME
   #TODO FIXME: possibly also removed downloaded installer (assuming download failed)
   echo -e "** Temporary files deleted. Please ${BLUE}run the installer again${NC}."
   exit 0
