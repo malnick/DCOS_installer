@@ -516,6 +516,7 @@ EOF2
 
 #Add dcos CLI to bootstrap node.
 ################################
+echo "** Installing ${BLUE}DC/OS${NC} CLI..."
 curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos && 
  sudo export PATH=$PATH:/usr/local/bin &&
  sudo mv dcos /usr/local/bin && 
