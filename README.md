@@ -24,7 +24,7 @@ The script assumes some default values. If you wish to modify these parameters, 
 **IMPORTANT**: Run as root in the bootstrap node. Do `sudo su`, `cd`, then run the commands.
 Do NOT `sudo command` instead.
 
-**Direct Installation** with default parameters including **"testing" Open Source DC/OS** branch, simply login as root to the bootstrap node, and download+run the script::
+**Direct Installation** with default parameters including **"testing" Open Source DC/OS** branch, simply login to the bootstrap node, and download+run the script::
 
 ```
 sudo su
@@ -58,14 +58,6 @@ NOTE2: To know whether the installation was successful after the bootstrap node 
 ```docker ps```
 
 You should see an nginx container running on the bootstrap node. Otherwise, simply run the installer again.
-
-## Contributing
-
-1. Fork it!
-2. Create your feature branch: ```git checkout -b my-new-feature```
-3. Commit your changes: ```git commit -am 'Add some feature'```
-4. Push to the branch: ```git push origin my-new-feature```
-5. Submit a pull request :D
 
 ## License
 
