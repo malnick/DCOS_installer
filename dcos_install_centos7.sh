@@ -528,7 +528,7 @@ curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
 #################################################################
 if [ -f $TEST_FILE ]; then
   echo -e "** ${BLUE}SUCCESS${NC}. Bootstrap node installed."
-  echo -e "** ${BLUE}COPY AND PASTE THIS INTO EACH NODE OF THE CLUSTER TO INSTALL DC/OS ON IT:"
+  echo -e "** ${BLUE}COPY AND PASTE THE FOLLOWING INTO EACH NODE OF THE CLUSTER TO INSTALL DC/OS:"
   echo -e ""
   echo -e "${RED}sudo su"
   echo -e "cd"
