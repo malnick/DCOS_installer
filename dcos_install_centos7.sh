@@ -13,6 +13,7 @@
 USERNAME=bootstrapuser
 PASSWORD=deleteme
 DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
+CLI_DOWNLOAD_URL="https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos"
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
 CLUSTERNAME="DC/OS @ "$(hostname)     
 BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
@@ -513,9 +514,14 @@ EOF2
 # $$ end of node installer
 #################################################################
 
-#TODO: Add dcos CLI to bootstrap node.
+#Add dcos CLI to bootstrap node.
 ################################
-
+curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos && 
+ sudo export PATH=$PATH:/usr/local/bin &&
+ sudo mv dcos /usr/local/bin && 
+ sudo chmod +x /usr/local/bin/dcos && 
+ dcos config set core.dcos_url https://awsmaster1 && 
+ dcos
 
 #Check that installation finished successfully.
 #################################################################
