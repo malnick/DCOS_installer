@@ -14,7 +14,7 @@ USERNAME=bootstrapuser
 PASSWORD=deleteme
 DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
-CLUSTERNAME=$(hostname)"-"$(date +"%m-%d-%y")       #DEFAULT: hostname plus date
+CLUSTERNAME="DC/OS @ "$(hostname)     
 BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
  '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #DEFAULT: this node's eth0
 BOOTSTRAP_PORT=81                                  #DEFAULT. Can be any free/open port
