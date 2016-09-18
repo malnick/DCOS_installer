@@ -16,8 +16,8 @@ DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
 CLUSTERNAME="DC/OS @ "$(hostname)     
 BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
- '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #DEFAULT: this node's eth0
-BOOTSTRAP_PORT=81                                  #DEFAULT. Can be any free/open port
+ '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #this node's eth0
+BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 
 #****************************************************************
@@ -341,27 +341,6 @@ EOF
 chmod 0755 /etc/systemd/system/$SERVICE_NAME.service
 systemctl enable $SERVICE_NAME.service
 
-#Bootstrap services inside docker containers equired for installer and serving nodes.
-#TODO DELETE: Run local zookeeper instance for temporary storage of installer -- TO BE REMOVED
-#/usr/bin/docker run -d -p 2181:2181 -p 2888:2888 -p 3888:3888 -v /var/zookeeper/dcos:/tmp/zookeeper --name=dcos_int_zk jplock/zookeeper
-#Add to systemd for automatic restart
-#cat > /etc/systemd/system/$SERVICE_NAME-zk.service << EOF
-#[Unit]
-#Description=$SERVICE_NAME zookeeper container
-#Requires=docker.service
-#After=docker.service
-#[Service]
-#Type=forking
-#Restart=always
-#RestartSec=5
-#ExecStart=/usr/bin/docker start -a dcos_int_zk
-#ExecStop=/usr/bin/docker stop -t 2 dcos_int_zk
-#[Install]
-#WantedBy=multi-user.target
-#EOF
-#chmod 0755 /etc/systemd/system/$SERVICE_NAME-zk.service
-#systemctl enable $SERVICE_NAME-zk.service
-
 #Run local nginx server to offer installation files to nodes
 /usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
         --name=dcos_int_nginx nginx
@@ -382,7 +361,6 @@ WantedBy=multi-user.target
 EOF
 chmod 0755 /etc/systemd/system/$SERVICE_NAME-nginx.service
 systemctl enable $SERVICE_NAME-nginx.service
-
 systemctl daemon-reload
 
 #Generate agent launcher so that agents just have to:
