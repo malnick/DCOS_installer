@@ -355,8 +355,8 @@ After=docker.service
 Type=forking
 Restart=always
 RestartSec=5
-ExecStart=/usr/bin/docker start -a dcos_int_nginx
-ExecStop=/usr/bin/docker stop -t 2 dcos_int_nginx
+ExecStart=/usr/bin/docker start -a $NGINX_NAME
+ExecStop=/usr/bin/docker stop -t 2 $NGINX_NAME
 [Install]
 WantedBy=multi-user.target
 EOF
