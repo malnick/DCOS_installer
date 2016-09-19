@@ -212,7 +212,7 @@ fi
 
 #run the installer to generate password hash. Store it hidden and protected
 if [ ! -f $PASSWORD_HASH_FILE ]; then
-  echo "** Unpacking image and generating password hash..."
+  echo "** Unpacking image and generating password hash (this may take a few minutes) ..."
   sudo bash $WORKING_DIR/$INSTALLER_FILE --hash-password $PASSWORD | \
   tail -n1 > $PASSWORD_HASH_FILE
   chmod 0400 $PASSWORD_HASH_FILE
