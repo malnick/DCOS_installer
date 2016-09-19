@@ -521,6 +521,7 @@ curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
  sudo mv dcos /usr/bin && 
  sudo chmod +x /usr/bin/dcos && 
  dcos config set core.dcos_url https://$MASTER_1 && 
+ dcos config set core.ssl_verify false &&
  dcos
 
 #Check that installation finished successfully.
