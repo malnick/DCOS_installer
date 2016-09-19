@@ -48,10 +48,7 @@ The script will provide a command during the installation process pointing to th
 
 ```curl -O http://BOOTSTRAP_NODE_IP:PORT/node_installer.sh && sudo bash node_installer.sh ```
 
-All nodes will likely have to be rebooted as part of the installation process for the dependencies to launch at startup.
-The bootstrap node will automatically launch the installation process and required services upon reboot, so once it's rebooted it will be ready to proceed. All other nodes will require a second run of the installer once the first run has satisfied the missing dependencies and forced a reboot.
-
-NOTE: The installation process can be faulty at times. If something fails, it may be due to some decompression/download failing. If that happens, just run the same installer command again (both in the bootstrap and in other nodes).
+NOTE: The installation process may fail sometimes. If something fails, it is likely due to some decompression/download failing. If that happens, just run the same installer command again (both in the bootstrap and in other nodes). It is currently not uncommon that the bootstrap node requires two runs.
 
 NOTE2: To know whether the installation was successful after the bootstrap node has rebooted, run:
 
