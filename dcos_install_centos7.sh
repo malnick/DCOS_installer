@@ -298,7 +298,7 @@ cat > $WORKING_DIR/$BOOTSTRAP_FILE << EOF
 if [ ! -f $TEST_FILE ]; then
     echo "***************************************"
     echo "*** Setting up DC/OS bootstrap node ***"
-    echo "***.................................***"
+    echo "***************************************"
     cd $WORKING_DIR
     /bin/bash $WORKING_DIR/$INSTALLER_FILE && \
     if [ -f $TEST_FILE ]; then
