@@ -54,7 +54,7 @@ NOTE2: To know whether the installation was successful after the bootstrap node 
 
 ```docker ps```
 
-You should see an nginx container running on the bootstrap node. Otherwise, simply run the installer again.
+You should see an nginx container running on the bootstrap node listening on the port chosen to serve the installation files to other nodes (default is 81). Otherwise, simply run the installer again.
 
 ## License
 
