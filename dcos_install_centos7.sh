@@ -518,10 +518,9 @@ EOF2
 ################################
 echo -e "** Installing ${BLUE}DC/OS${NC} CLI..."
 curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos && 
- bash -c "export PATH=$PATH:/usr/local/bin" &&
- sudo mv dcos /usr/local/bin && 
- sudo chmod +x /usr/local/bin/dcos && 
- dcos config set core.dcos_url https://awsmaster1 && 
+ sudo mv dcos /usr/bin && 
+ sudo chmod +x /usr/bin/dcos && 
+ dcos config set core.dcos_url https://$MASTER_1 && 
  dcos
 
 #Check that installation finished successfully.
