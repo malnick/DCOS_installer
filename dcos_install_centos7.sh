@@ -361,8 +361,6 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
-echo "** Please run as ROOT -- after "sudo su" ****"
-echo ""
 echo "** Installing DC/OS..."
 echo "** Setting up installation directory.."
 mkdir -p /tmp/dcos
