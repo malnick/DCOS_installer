@@ -27,13 +27,13 @@ Do NOT `sudo command` instead.
 **Direct Installation** with default parameters including **"testing" Open Source DC/OS** branch, simply login to the bootstrap node, and download+run the script::
 
 ```
-sudo su
+sudo su -
 cd
 source <(curl https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh)
 ```
  For other versions, releases, or installation options (such as **Enterprise DC/OS**), edit the script before running it and modify the required parameters:
 ```
-sudo su
+sudo su -
 cd
 curl -O https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh
 #Edit download link
