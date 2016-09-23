@@ -440,7 +440,7 @@ fi
 EOF2
 
 #Update system
-sudo cat > $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
+sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 echo "** Updating system..."
 sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 EOF2
