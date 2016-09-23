@@ -361,6 +361,11 @@ if [ "$EUID" -ne 0 ]; then
   exit
 fi
 
+#stop conflicting services
+echo "** Stop & disable dnsmasq using port 53 required by spartan ..."
+systemctl stop dnsmasq
+systemctl disable dnsmasq.service
+
 echo "** Installing DC/OS..."
 echo "** Setting up installation directory.."
 mkdir -p /tmp/dcos
