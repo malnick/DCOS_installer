@@ -46,7 +46,7 @@ bash dcos_install_centos7.sh
 
 The script will provide a command during the installation process pointing to the node installer script in the bootstrap node, to be copied & pasted in the cluster nodes for installation. The format will be:
 
-```curl -O http://BOOTSTRAP_NODE_IP:PORT/node_installer.sh && sudo bash node_installer.sh ROLE```
+```curl -O http://BOOTSTRAP_NODE_IP:PORT/node_installer.sh && sudo bash node_installer.sh [ROLE]```
 
 NOTE: The installation process may fail sometimes. If something fails, it is likely due to some decompression/download failing. If that happens, just run the same installer command again (both in the bootstrap and in other nodes). It is currently not uncommon that the bootstrap node requires two runs.
 
