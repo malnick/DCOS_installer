@@ -48,7 +48,7 @@ The script will provide a command during the installation process pointing to th
 
 ```curl -O http://BOOTSTRAP_NODE_IP:PORT/node_installer.sh && sudo bash node_installer.sh [ROLE]```
 
-NOTE: The installation process may fail sometimes. If something fails, it is likely due to some decompression/download failing. If that happens, just run the same installer command again (both in the bootstrap and in other nodes). It is currently not uncommon that the bootstrap node requires two runs.
+NOTE: The installation process may fail sometimes. If something fails, it is likely due to some decompression/download failing. If that happens, just run the same installer command again (both in the bootstrap and in other nodes).
 
 NOTE2: To know whether the installation was successful after the bootstrap node has rebooted, run:
 
