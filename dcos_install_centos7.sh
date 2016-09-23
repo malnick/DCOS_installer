@@ -286,37 +286,6 @@ superuser_password_hash: $PASSWORD_HASH
 superuser_username: $USERNAME
 EOF
 
-
-#Create one-time installer and docker launcher for next reboot
-#################################################################
-echo "** Generating launcher..."
-
-cat > $WORKING_DIR/$BOOTSTRAP_FILE << EOF
-#!/bin/bash
-#This script installs and boots DC/OS bootstrap installer.
-#Interprets that DC/OS is installed if $TEST_FILE exists.
-if [ ! -f $TEST_FILE ]; then
-    echo "***************************************"
-    echo "*** Setting up DC/OS bootstrap node ***"
-    echo "***************************************"
-    cd $WORKING_DIR
-    /bin/bash $WORKING_DIR/$INSTALLER_FILE && \
-    sleep 3 && \
-    if [ -f $TEST_FILE ]; then
-      echo "***************************************"
-      echo -e "* ${BLUE}SUCCESS${NC}. DC/OS bootstrap node ${BLUE}READY${NC} *"
-      echo "***************************************"
-    else
-      echo "*******************************************"
-      echo -e "***** DC/OS bootstrap install ${RED}FAILED${NC}. *****"
-      echo "***** Please run the installer again. *****"
-      echo "*******************************************"
-    fi
-fi
-EOF
-#make file executable
-chmod 0755 $WORKING_DIR/$BOOTSTRAP_FILE
-
 #Add services to startup
 #################################################################
 echo "** Adding services to startup..."
@@ -407,7 +376,7 @@ else
   exit 0
 fi
 
-#check out if $ROLE has been passed as argument, or defined in a 
+#check out if $ROLE has been passed as argument, or defined in a
 #previous run, ask otherwise
 if [ $# > 1 ]
 then
@@ -418,7 +387,7 @@ then
   then
      #invalid role passed as an argument
      echo "** Invalid node ROLE detected as argument."
-     #delete $ROLE_FILE so that the next loop asks for it 
+     #delete $ROLE_FILE so that the next loop asks for it
      rm -f $ROLE_FILE
   else
      echo $ROLE > $ROLE_FILE
@@ -530,6 +499,28 @@ fi
 EOF2
 # $$ end of node installer
 #################################################################
+
+#Install DC/OS
+#Interpret that DC/OS is installed if $TEST_FILE exists.
+#################################################################
+if [ ! -f $TEST_FILE ]; then
+    echo "***************************************"
+    echo "*** Setting up DC/OS bootstrap node ***"
+    echo "***************************************"
+    cd $WORKING_DIR
+    /bin/bash $WORKING_DIR/$INSTALLER_FILE && \
+    sleep 3 && \
+    if [ -f $TEST_FILE ]; then
+      echo "***************************************"
+      echo -e "* ${BLUE}SUCCESS${NC}. DC/OS bootstrap node ${BLUE}READY${NC} *"
+      echo "***************************************"
+    else
+      echo "*******************************************"
+      echo -e "***** DC/OS bootstrap install ${RED}FAILED${NC}. *****"
+      echo "***** Please run the installer again. *****"
+      echo "*******************************************"
+    fi
+fi
 
 #Add dcos CLI to bootstrap node.
 ################################
