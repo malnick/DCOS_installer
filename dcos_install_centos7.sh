@@ -15,7 +15,7 @@ PASSWORD=deleteme
 DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
 CLI_DOWNLOAD_URL="https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos"
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
-CLUSTERNAME="DC/OS @ "$(hostname)     
+CLUSTERNAME="DC/OS @ "$(hostname)
 BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
  '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #this node's eth0
 BOOTSTRAP_PORT=81                                          #any free/open port
@@ -405,13 +405,30 @@ else
   echo "** Internet connectivity is not working. Aborting."
   exit 0
 fi
+EOF2
+# $$ end "leave variables"
+# $$ EOF2 without ticks - "translate variables on generation"
+#check out if $ROLE has been defined in a previous run, ask otherwise
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
+if [ ! -f $ROLE_FILE ]; then
+  while [[ $ROLE != "master" ]] && \
+        [[ $ROLE != "slave"  ]] && \
+        [[ $ROLE != "slave_public" ]]
+  do
+    read -p "** Enter this node's role [master/slave/slave_public]: " ROLE
+    echo $ROLE > $ROLE_FILE
+  done
+else
+  ROLE=`cat $ROLE_FILE`
+fi
+EOF2
 
 #Update system
+sudo cat > $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 echo "** Updating system..."
 sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 EOF2
-# $$ end "leave variables"
-# $$ without ticks - "translate variables on generation"
+
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 
 echo "** Downloading installer from $BOOTSTRAP_IP..."
@@ -433,12 +450,9 @@ echo "** Installing dependencies..."
 #Docker with overlayfs
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
-
 EOF2
-# $$ end "translate variables"
-# $$ start "leave variables"
-sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
+sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #add docker repo
 sudo tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
@@ -450,7 +464,7 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #install docker engine, daemon and service, along with dependencies
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset && 
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset &&
 
 #add overlay storage driver
 echo 'overlay'\
@@ -484,19 +498,6 @@ else
   sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
 fi
 
-#check out if $ROLE has been defined in a previous run, ask otherwise
-if [ ! -f $ROLE_FILE ]; then
-  while [[ $ROLE != "master" ]] && \
-        [[ $ROLE != "slave"  ]] && \
-        [[ $ROLE != "slave_public" ]]
-  do
-    read -p "** Enter this node's role [master/slave/slave_public]: " ROLE
-    echo $ROLE > $ROLE_FILE
-  done
-else
-  ROLE=`cat $ROLE_FILE`
-fi
-
 echo "** Running installer as $ROLE..."
 sudo bash /tmp/dcos/dcos_install.sh $ROLE
 #catch result, print error if applicable. If the last entry of "dcos-setup" status is failed...
@@ -517,10 +518,10 @@ EOF2
 #Add dcos CLI to bootstrap node.
 ################################
 echo -e "** Installing ${BLUE}DC/OS${NC} CLI..."
-curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos && 
- sudo mv dcos /usr/bin && 
- sudo chmod +x /usr/bin/dcos && 
- dcos config set core.dcos_url https://$MASTER_1 && 
+curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
+ sudo mv dcos /usr/bin &&
+ sudo chmod +x /usr/bin/dcos &&
+ dcos config set core.dcos_url https://$MASTER_1 &&
  dcos config set core.ssl_verify false &&
  dcos
 
