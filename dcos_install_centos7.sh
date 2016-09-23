@@ -539,7 +539,7 @@ if [ -f $TEST_FILE ]; then
   echo -e ""
   echo -e "${RED}sudo su"
   echo -e "cd"
-  echo -e "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC}"
+  echo -e "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC} [ROLE]"
   echo -e ""
   exit 1
 else
