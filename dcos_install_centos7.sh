@@ -301,6 +301,7 @@ if [ ! -f $TEST_FILE ]; then
     echo "***************************************"
     cd $WORKING_DIR
     /bin/bash $WORKING_DIR/$INSTALLER_FILE && \
+    sleep 3 && \
     if [ -f $TEST_FILE ]; then
       echo "***************************************"
       echo -e "* ${BLUE}SUCCESS${NC}. DC/OS bootstrap node ${BLUE}READY${NC} *"
@@ -405,11 +406,26 @@ else
   echo "** Internet connectivity is not working. Aborting."
   exit 0
 fi
-EOF2
-# $$ end "leave variables"
-# $$ EOF2 without ticks - "translate variables on generation"
-#check out if $ROLE has been defined in a previous run, ask otherwise
-sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
+
+#check out if $ROLE has been passed as argument, or defined in a 
+#previous run, ask otherwise
+if [ $# > 1 ]
+then
+  ROLE="$1"
+  if [[ $ROLE != "master" ]] && \
+     [[ $ROLE != "slave"  ]] && \
+     [[ $ROLE != "slave_public" ]]
+  then
+     #invalid role passed as an argument
+     echo "** Invalid node ROLE detected as argument."
+     #delete $ROLE_FILE so that the next loop asks for it 
+     rm -f $ROLE_FILE
+  else
+     echo $ROLE > $ROLE_FILE
+  fi
+fi
+
+#Either a second-run or an invalid role as an argument
 if [ ! -f $ROLE_FILE ]; then
   while [[ $ROLE != "master" ]] && \
         [[ $ROLE != "slave"  ]] && \
