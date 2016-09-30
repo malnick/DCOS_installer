@@ -252,7 +252,7 @@ dcos_overlay_network:
   vtep_subnet: 192.15.0.0/20
   vtep_mac_oui: 70:B3:D5:00:00:00
   overlays:
-   - name: dcos-0
+   - name: dcos
      subnet: 192.168.0.0/19
      prefix: 24
    - name: dcos-1
