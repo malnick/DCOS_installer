@@ -91,9 +91,9 @@ while true; do
 echo ""
 echo "** Will now install a DC/OS bootstrap node with the following parameters:"
 echo ""
-echo "**************************          ****************"
+echo "*****************************          ****************"
 echo "1) Master node private IP(s):          "$MASTER_IP
-echo "**************************          ****************"
+echo "*****************************          ****************"
 echo "2) DC/OS username:                     "$USERNAME
 echo "3) DC/OS Password:                     "$PASSWORD
 echo "4) Generated Cluster Name:             "$CLUSTERNAME
