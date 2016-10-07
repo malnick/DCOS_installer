@@ -542,6 +542,9 @@ if [ -f $TEST_FILE ] && [ $(docker inspect -f {{.State.Running}} $NGINX_NAME) ==
   echo -e "cd"
   echo -e "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC} [ROLE]"
   echo -e ""
+  echo -e ""
+  echo -e "** This Agent installation command is also saved in $WORKING_DIR/$COMMAND_FILE for future use."
+  echo -e "** ${BLUE}Done${NC}."
   exit 1
 else
   echo -e "** Bootstrap node installation ${RED}FAILED${NC}."
