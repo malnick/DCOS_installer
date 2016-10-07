@@ -86,6 +86,8 @@ else
   MASTER_IP=`cat $MASTER_IP_FILE`
 fi
 
+while true; do
+
 echo ""
 echo "** Will now install a DC/OS bootstrap node with the following parameters:"
 echo ""
@@ -102,7 +104,6 @@ echo "8) NTP server:                         "$NTP_SERVER
 echo ""
 echo "******************************************************************************"
 
-while true; do
   read -p "** Are these parameters correct?: (y/n): " REPLY
   case $REPLY in
     [yY]) echo ""
