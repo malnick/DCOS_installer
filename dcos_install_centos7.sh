@@ -293,10 +293,12 @@ EOF
 #Run local NGINX server and add it as service to startup
 #################################################################
 echo "** Running local $NGINX_NAME container to serve installation files..."
+#remove container if it exists already
+sudo docker rm -f $NGINX_NAME
 /usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
         --name=$NGINX_NAME nginx
-sleep 3        
-if ( docker inspect -f {{.State.Running}} $NGINX_NAME == "false" ); then
+sleep 2        
+if [ $(docker inspect -f {{.State.Running}} $NGINX_NAME) == "false" ]; then
   echo -e "** Running local $NGINX_NAME container ${RED}FAILED${NC}. Exiting."
   exit 1
 fi
@@ -531,8 +533,8 @@ curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
 
 #Check that installation finished successfully.
 #################################################################
-sleep 5
-if [ -f $TEST_FILE ] && ( docker inspect -f {{.State.Running}} $NGINX_NAME == "true" ); then
+sleep 3
+if [ -f $TEST_FILE ] && [ $(docker inspect -f {{.State.Running}} $NGINX_NAME) == "true" ]; then
   echo -e "** ${BLUE}SUCCESS${NC}. Bootstrap node installed."
   echo -e "** ${BLUE}COPY AND PASTE THE FOLLOWING INTO EACH NODE OF THE CLUSTER TO INSTALL DC/OS:"
   echo -e ""
