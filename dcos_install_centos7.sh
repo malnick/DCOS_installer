@@ -12,7 +12,7 @@
 
 USERNAME=bootstrapuser
 PASSWORD=deleteme
-DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
+DOWNLOAD_URL="https://downloads.mesosphere.com/dcos-enterprise/stable/dcos_generate_config.ee.sh"
 CLI_DOWNLOAD_URL="https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos"
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
 CLUSTERNAME="DC/OS @ "$(hostname)
@@ -27,7 +27,6 @@ NTP_SERVER="pool.ntp.org"
 #****************************************************************
 SERVICE_NAME=dcos-bootstrap
 INSTALLER_FILE=$(basename $DOWNLOAD_URL)
-BOOTSTRAP_FILE=$SERVICE_NAME.sh
 PASSWORD_HASH_FILE=$WORKING_DIR/.pshash
 NODE_INSTALLER=node_installer.sh
 COMMAND_FILE=node_command.sh
@@ -195,9 +194,6 @@ if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]];
   echo -e "${RED}systemctl stop docker && systemctl daemon-reload${NC}"
   read -p "** Press Enter to exit..."
   exit 1
-else
-  #run the installer as we're ready for it
-  sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
 fi
 
 #Create config directory
@@ -294,32 +290,8 @@ superuser_password_hash: $PASSWORD_HASH
 superuser_username: $USERNAME
 EOF
 
-#Add services to startup
+#Run local NGINX server and add it as service to startup
 #################################################################
-echo "** Adding services to startup..."
-
-#create systemd unit file for installer to start at reboot
-cat > /etc/systemd/system/$SERVICE_NAME.service << EOF
-[Unit]
-Description=$SERVICE_NAME server
-Requires=docker.service
-After=docker.service
-
-[Service]
-Type=forking
-WorkingDirectory=$WORKING_DIR
-TimeoutStartSec=0
-ExecStart=/bin/bash $WORKING_DIR/$BOOTSTRAP_FILE
-KillMode=process
-
-[Install]
-WantedBy=multi-user.target
-EOF
-#enable service so that it's run upon reboot
-chmod 0755 /etc/systemd/system/$SERVICE_NAME.service
-systemctl enable $SERVICE_NAME.service
-
-#run local nginx server to offer installation files to nodes
 echo "** Running local $NGINX_NAME container to serve installation files..."
 /usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
         --name=$NGINX_NAME nginx
@@ -329,6 +301,7 @@ if ( docker inspect -f {{.State.Running}} $NGINX_NAME == "false" ); then
   exit 1
 fi
 
+echo "** Adding $NGINX_NAME service to startup..."
 #add to systemd to run at boot time
 cat > /etc/systemd/system/$SERVICE_NAME-nginx.service << EOF
 [Unit]
@@ -344,6 +317,7 @@ ExecStop=/usr/bin/docker stop -t 2 $NGINX_NAME
 [Install]
 WantedBy=multi-user.target
 EOF
+
 chmod 0755 /etc/systemd/system/$SERVICE_NAME-nginx.service
 systemctl enable $SERVICE_NAME-nginx.service
 systemctl daemon-reload
@@ -575,7 +549,7 @@ else
   #remove calculated unpacked tar file (assuming decompression/hashing failed)
   rm $UNPACKED_INSTALLER_FILE
   #remove nginx container
-  sudo docker rm -f $NGINX_NAME
+#  sudo docker rm -f $NGINX_NAME
   #TODO FIXME: possibly also removed downloaded installer (assuming download failed)
   echo -e "** Temporary files deleted. Please ${BLUE}run the installer again${NC}."
   exit 0
