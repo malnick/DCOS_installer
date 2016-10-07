@@ -20,6 +20,7 @@ BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
  '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #this node's eth0
 BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
+NTP_SERVER="pool.ntp.org"
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -97,6 +98,7 @@ echo "4) Generated Cluster Name:             "$CLUSTERNAME
 echo "5) IP for this bootstrap server:       "$BOOTSTRAP_IP
 echo "6) TCP port for bootstrap server:      "$BOOTSTRAP_PORT
 echo "7) Installation directory:             "$WORKING_DIR
+echo "8) NTP server:                         "$NTP_SERVER
 echo ""
 echo "******************************************************************************"
 
@@ -110,7 +112,7 @@ while true; do
           echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
-    [nN]) read -p "** Enter number of parameter to modify [1-7]: " PARAMETER
+    [nN]) read -p "** Enter number of parameter to modify [1-8]: " PARAMETER
           case $PARAMETER in
             [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
                  ;;
@@ -126,7 +128,9 @@ while true; do
                  ;;
             [7]) read -p "Enter new value for Installation Directory: " WORKING_DIR
                  ;;
-              *) echo "** Invalid input. Please choose an option [1-7]"
+            [8]) read -p "Enter new value for NTP server: " NTP_SERVER
+                 ;;                 
+              *) echo "** Invalid input. Please choose an option [1-8]"
                  ;;
           esac
           ;;
@@ -156,7 +160,12 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #docker engine with selinux and other requirements
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp-client 
+
+#configure ntp
+sudo ntpdate $NTP_SERVER && \\
+sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \\
+sudo chkconfig ntp on 
 
 #add overlay storage driver to kernel modules
 echo 'overlay'\
@@ -450,7 +459,13 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #install docker engine, daemon and service, along with dependencies
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget tar xz curl zip unzip ipset &&
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \\
+ wget tar xz curl zip unzip ipset ntp-client 
+
+#configure ntp
+sudo ntpdate $NTP_SERVER && \\
+sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \\
+sudo chkconfig ntp on 
 
 #add overlay storage driver
 echo 'overlay'\
