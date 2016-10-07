@@ -89,14 +89,14 @@ echo ""
 echo "** Will now install a DC/OS bootstrap node with the following parameters:"
 echo ""
 echo "**************************          ****************"
-echo "Master node private IP(s):          "$MASTER_IP
+echo "1) Master node private IP(s):          "$MASTER_IP
 echo "**************************          ****************"
-echo "DC/OS username:                     "$USERNAME
-echo "Password:                           "$PASSWORD
-echo "Generated Cluster Name:             "$CLUSTERNAME
-echo "Detected IP for bootstrap server:   "$BOOTSTRAP_IP
-echo "TCP port for bootstrap server:      "$BOOTSTRAP_PORT
-echo "Installation directory:             "$WORKING_DIR
+echo "2) DC/OS username:                     "$USERNAME
+echo "3) DC/OS Password:                     "$PASSWORD
+echo "4) Generated Cluster Name:             "$CLUSTERNAME
+echo "5) IP for this bootstrap server:       "$BOOTSTRAP_IP
+echo "6) TCP port for bootstrap server:      "$BOOTSTRAP_PORT
+echo "7) Installation directory:             "$WORKING_DIR
 echo ""
 echo "******************************************************************************"
 
@@ -110,9 +110,25 @@ while true; do
           echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
-    [nN]) echo "** Aborting. Please edit the required values in the installer file then run this script again"
-          #FIXME: add section to ask which parameter to change and read it from input
-          exit 1
+    [nN]) read -p "** Enter number of parameter to modify [1-7]: " PARAMETER
+          case $PARAMETER in
+            [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
+                 ;;
+            [2]) read -p "Enter new value for DC/OS username: " USERNAME
+                 ;;
+            [3]) read -p "Enter new value for DC/OS password: " PASSWORD
+                 ;;
+            [4]) read -p "Enter new value for Generated Cluster Name: " CLUSTERNAME
+                 ;;
+            [5]) read -p "Enter new value for IP for this bootstrap server: " BOOTSTRAP_IP
+                 ;;
+            [6]) read -p "Enter new value for TCP port for this bootstrap server: " BOOTSTRAP_PORT
+                 ;;
+            [7]) read -p "Enter new value for Installation Directory: " WORKING_DIR
+                 ;;
+              *) echo "** Invalid input. Please choose an option [1-7]"
+                 ;;
+          esac
           ;;
     *) echo "** Invalid input. Please choose [y] or [n]"
        ;;
