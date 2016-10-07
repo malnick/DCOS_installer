@@ -164,9 +164,9 @@ EOF
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp 
 
 #configure ntp
-sudo ntpdate $NTP_SERVER && \\
-sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \\
-sudo systemctl start ntpd && \\
+sudo ntpdate $NTP_SERVER && \
+sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \
+sudo systemctl start ntpd && \
 sudo systemctl enable ntpd
 
 #add overlay storage driver to kernel modules
@@ -465,9 +465,9 @@ sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11
  wget tar xz curl zip unzip ipset ntp 
 
 #configure ntp
-sudo ntpdate $NTP_SERVER && \\
-sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \\
-sudo systemctl start ntpd && \\
+sudo ntpdate $NTP_SERVER && \
+sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \
+sudo systemctl start ntpd && \
 sudo systemctl enable ntpd
 
 #add overlay storage driver
