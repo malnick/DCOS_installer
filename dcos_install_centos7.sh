@@ -320,8 +320,14 @@ chmod 0755 /etc/systemd/system/$SERVICE_NAME.service
 systemctl enable $SERVICE_NAME.service
 
 #run local nginx server to offer installation files to nodes
+echo "** Running local $NGINX_NAME container to serve installation files..."
 /usr/bin/docker run -d -p $BOOTSTRAP_PORT:80 -v $WORKING_DIR/genconf/serve:/usr/share/nginx/html:ro \
         --name=$NGINX_NAME nginx
+sleep 3        
+if ( docker inspect -f {{.State.Running}} $NGINX_NAME == "false" ); then
+  echo -e "** Running local $NGINX_NAME container ${RED}FAILED${NC}. Exiting."
+  exit 1
+fi
 
 #add to systemd to run at boot time
 cat > /etc/systemd/system/$SERVICE_NAME-nginx.service << EOF
