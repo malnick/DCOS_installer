@@ -549,7 +549,7 @@ else
   #remove calculated unpacked tar file (assuming decompression/hashing failed)
   rm $UNPACKED_INSTALLER_FILE
   #remove nginx container
-#  sudo docker rm -f $NGINX_NAME
+  sudo docker rm -f $NGINX_NAME
   #TODO FIXME: possibly also removed downloaded installer (assuming download failed)
   echo -e "** Temporary files deleted. Please ${BLUE}run the installer again${NC}."
   exit 0
