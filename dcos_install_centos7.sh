@@ -409,15 +409,6 @@ EOF2
 
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 
-#install docker engine, daemon and service, along with dependencies
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
- wget tar xz curl zip unzip ipset ntp 
-
-#configure ntp
-sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \
-sudo systemctl start ntpd && \
-sudo systemctl enable ntpd
-
 echo "** Downloading installer from $BOOTSTRAP_IP..."
 curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/dcos_install.sh
 
@@ -449,6 +440,15 @@ enabled=1
 gpgcheck=1
 gpgkey=https://yum.dockerproject.org/gpg
 EOF
+
+#install docker engine, daemon and service, along with dependencies
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
+ wget tar xz curl zip unzip ipset ntp 
+
+#configure ntp
+sudo echo "server pool.ntp.org" > /etc/ntp.conf && \
+sudo systemctl start ntpd && \
+sudo systemctl enable ntpd
 
 #add overlay storage driver
 echo 'overlay'\
