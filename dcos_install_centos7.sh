@@ -249,31 +249,13 @@ PASSWORD_HASH=`cat $PASSWORD_HASH_FILE`
 echo "** Generating external persistent volumes configuration file for Amazon EBS..."
 
 cat > $WORKING_DIR/genconf/$REXRAY_CONFIG_FILE << EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "ec2:CreateTags",
-                "ec2:DescribeInstances",
-                "ec2:CreateVolume",
-                "ec2:DeleteVolume",
-                "ec2:AttachVolume",
-                "ec2:DetachVolume",
-                "ec2:DescribeVolumes",
-                "ec2:DescribeVolumeStatus",
-                "ec2:DescribeVolumeAttribute",
-                "ec2:CreateSnapshot",
-                "ec2:CopySnapshot",
-                "ec2:DeleteSnapshot",
-                "ec2:DescribeSnapshots",
-                "ec2:DescribeSnapshotAttribute"
-            ],
-            "Resource": "*",
-            "Effect": "Allow"
-        }
-    ]
-}
+rexray:
+  loglevel: info
+  storageDrivers:
+    - ec2
+  volume:
+    unmount:
+      ignoreusedcount: true
 EOF
 
 #Generate configuration files
