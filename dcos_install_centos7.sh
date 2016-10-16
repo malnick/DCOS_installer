@@ -21,6 +21,7 @@ BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
 BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
+REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -243,6 +244,37 @@ else
 fi
 PASSWORD_HASH=`cat $PASSWORD_HASH_FILE`
 
+#generate Rex-ray configuration file for external persistent volumes with Amazon EBS
+####################################################################################
+echo "** Generating external persistent volumes configuration file for Amazon EBS..."
+
+cat > $WORKING_DIR/genconf/$REXRAY_CONFIG_FILE << EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "ec2:CreateTags",
+                "ec2:DescribeInstances",
+                "ec2:CreateVolume",
+                "ec2:DeleteVolume",
+                "ec2:AttachVolume",
+                "ec2:DetachVolume",
+                "ec2:DescribeVolumes",
+                "ec2:DescribeVolumeStatus",
+                "ec2:DescribeVolumeAttribute",
+                "ec2:CreateSnapshot",
+                "ec2:CopySnapshot",
+                "ec2:DeleteSnapshot",
+                "ec2:DescribeSnapshots",
+                "ec2:DescribeSnapshotAttribute"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        }
+    ]
+}
+EOF
 
 #Generate configuration files
 #################################################################
@@ -261,6 +293,8 @@ exhibitor_storage_backend: static
 master_discovery: static
 telemetry_enabled: false
 security: $SECURITY_LEVEL
+rexray_config_method: file
+rexray_config_filename: $REXRAY_CONFIG_FILE
 master_list:
 $([[ $MASTER_1 != "" ]] && echo "- $MASTER_1")  \
 $([[ $MASTER_2 != "" ]] && echo "
