@@ -22,6 +22,7 @@ BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
+TELEMETRY=true 
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -273,7 +274,7 @@ bootstrap_url: http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT
 cluster_name: $CLUSTERNAME
 exhibitor_storage_backend: static
 master_discovery: static
-telemetry_enabled: false
+telemetry_enabled: $TELEMETRY
 security: $SECURITY_LEVEL
 rexray_config_method: file
 rexray_config_filename: $REXRAY_CONFIG_FILE
