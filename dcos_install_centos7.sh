@@ -433,7 +433,7 @@ curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/dcos_install.sh
 sudo groupadd nogroup &&
 
 echo "** Enabling non-TTY sudo"
-sudo sed -i -e 's/Defaults requiretty/#Defaults requiretty/g' /etc/sudoers
+sudo sed -i -e 's/Defaults    requiretty/#Defaults    requiretty/g' /etc/sudoers
 
 echo "** Disabling IPv6..."
 sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 &&
