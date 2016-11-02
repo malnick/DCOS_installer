@@ -224,6 +224,11 @@ echo $(ip addr show eth0 | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1
 EOF
 fi
 
+#Generate certificate for docker registry, ELK and others
+#################################################################
+openssl req -nodes -newkey rsa:2048 -keyout $WORKING_DIR/genconf/domain.key -out $WORKING_DIR/genconf/domain.crt \
+ -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
+
 #Installer
 #################################################################
 #check whether the "dcos_generate_config.sh" script exists, download otherwise
