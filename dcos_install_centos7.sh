@@ -38,6 +38,8 @@ UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
 NGINX_NAME=dcos_int_nginx
 ELK_CERT_NAME=domain.crt
 ELK_KEY_NAME=domain.key
+ELK_HOSTNAME=$BOOTSTRAP_IP
+ELK_PORT=$BOOTSTRAP_PORT
 
 #pretty colours
 RED='\033[0;31m'
@@ -535,14 +537,14 @@ gpgcheck=1
 gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
 enabled=1
 EOF
-#install logstash
+#MASTER: install logstash
 sudo yum install -y logstash
-#get the domain certificate and key from bootstrap node for ELK
+#MASTER: get the domain certificate and key from bootstrap node for ELK
 sudo mkdir -p /etc/pki/tls/private/
 curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_CERT_NAME > /etc/pki/tls/$ELK_CERT_NAME
 curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_KEY_NAME > /etc/pki/tls/private/$ELK_KEY_NAME
-#add logstash config
-#beats input that listens on 5044 and uses the SSL cert
+#MASTER: add logstash config
+#MASTER: beats input that listens on 5044 and uses the SSL cert
 sudo tee /etc/logstash/conf.d/02-beats-input.conf <<-EOF 
 input {
   beats {
@@ -553,7 +555,7 @@ input {
   }
 }
 EOF
-#filter looks for logs that are labeled as "syslog" type (by Filebeat), 
+#MASTER: filter looks for logs that are labeled as "syslog" type (by Filebeat), 
 #and it will try to use grok to parse incoming syslog logs to make it structured and query-able
 sudo tee /etc/logstash/conf.d/10-syslog-filter.conf <<-EOF 
 filter {
@@ -570,7 +572,7 @@ filter {
   }
 }
 EOF
-#configures Logstash to store the beats data in Elasticsearch which is running at localhost:9200, 
+#MASTER: configures Logstash to store the beats data in Elasticsearch which is running at localhost:9200, 
 #in an index named after the beat used (filebeat, in our case)
 sudo tee /etc/logstash/conf.d/30-elasticsearch-output.conf <<-EOF 
 output {
@@ -587,6 +589,44 @@ echo "** Launching logstash-forwarder..."
 sudo service logstash configtest
 sudo systemctl restart logstash
 sudo chkconfig logstash on
+
+#AGENT: install Filebeat (logstash-forwarder):
+#copy SSL certificate
+sudo mkdir -p /etc/pki/tls/certs
+curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_CERT_NAME > /etc/pki/tls/certs/$ELK_CERT_NAME
+#install filebeat
+sudo rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
+sudo tee /etc/yum.repos.d/elastic-beats.repo <<-EOF 
+[beats]
+name=Elastic Beats Repository
+baseurl=https://packages.elastic.co/beats/yum/el/$basearch
+enabled=1
+gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch
+gpgcheck=1
+EOF
+sudo yum -y install filebeat
+#configure filebeat
+sudo mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.BAK
+sudo tee /etc/filebeat/filebeat.yml <<-EOF 
+filebeat.prospectors:
+- input_type: log
+  paths:
+    - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout
+    - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr
+  output.elasticsearch:
+  hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
+  ### Logstash as output
+
+logstash:
+    # The Logstash hosts
+    hosts: ["ELK_server_private_IP:5044"]
+    bulk_max_size: 1024
+
+  tls:
+      # List of root certificates for HTTPS server verifications
+      certificate_authorities: ["/etc/pki/tls/certs/logstash-forwarder.crt"]
+
+EOF
 
 EOF2
 # $$ end of node installer
