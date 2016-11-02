@@ -36,6 +36,9 @@ TEST_FILE=$WORKING_DIR/genconf/serve/dcos_install.sh
 MASTER_IP_FILE=$WORKING_DIR/.masterip
 UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
 NGINX_NAME=dcos_int_nginx
+ELK_CERT_NAME=domain.crt
+ELK_KEY_NAME=domain.key
+
 #pretty colours
 RED='\033[0;31m'
 BLUE='\033[1;34m'
@@ -520,6 +523,71 @@ else
   echo "** Node installed successfully."
   exit 1
 fi
+
+#install logstash-forwarder
+echo "** Installing logstash-forwarder..."
+#add logstash repo
+sudo tee /etc/yum.repos.d/logstash.repo <<-EOF 
+[logstash-2.2]
+name=logstash repository for 2.2 packages
+baseurl=http://packages.elasticsearch.org/logstash/2.2/centos
+gpgcheck=1
+gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+enabled=1
+EOF
+#install logstash
+sudo yum install -y logstash
+#get the domain certificate and key from bootstrap node for ELK
+sudo mkdir -p /etc/pki/tls/private/
+curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_CERT_NAME > /etc/pki/tls/$ELK_CERT_NAME
+curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_KEY_NAME > /etc/pki/tls/private/$ELK_KEY_NAME
+#add logstash config
+#beats input that listens on 5044 and uses the SSL cert
+sudo tee /etc/logstash/conf.d/02-beats-input.conf <<-EOF 
+input {
+  beats {
+    port => 5044
+    ssl => true
+    ssl_certificate => "/etc/pki/tls/$ELK_CERT_NAME"
+    ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
+  }
+}
+EOF
+#filter looks for logs that are labeled as "syslog" type (by Filebeat), 
+#and it will try to use grok to parse incoming syslog logs to make it structured and query-able
+sudo tee /etc/logstash/conf.d/10-syslog-filter.conf <<-EOF 
+filter {
+  if [type] == "syslog" {
+    grok {
+      match => { "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:syslog_hostname} %{DATA:syslog_program}(?:\[%{POSINT:syslog_pid}\])?: %{GREEDYDATA:syslog_message}" }
+      add_field => [ "received_at", "%{@timestamp}" ]
+      add_field => [ "received_from", "%{host}" ]
+    }
+    syslog_pri { }
+    date {
+      match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+    }
+  }
+}
+EOF
+#configures Logstash to store the beats data in Elasticsearch which is running at localhost:9200, 
+#in an index named after the beat used (filebeat, in our case)
+sudo tee /etc/logstash/conf.d/30-elasticsearch-output.conf <<-EOF 
+output {
+  elasticsearch {
+    hosts => ["localhost:9200"]
+    sniffing => true
+    manage_template => false
+    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+    document_type => "%{[@metadata][type]}"
+  }
+}
+EOF
+echo "** Launching logstash-forwarder..."
+sudo service logstash configtest
+sudo systemctl restart logstash
+sudo chkconfig logstash on
+
 EOF2
 # $$ end of node installer
 #################################################################
