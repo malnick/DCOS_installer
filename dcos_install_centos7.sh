@@ -785,7 +785,7 @@ input {
   beats {
     port => 5044
     ssl => true
-    ssl_certificate => "/etc/pki/tls/$ELK_CERT_NAME"
+    ssl_certificate => "/etc/pki/tls/certs/$ELK_CERT_NAME"
     ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
   }
 }
