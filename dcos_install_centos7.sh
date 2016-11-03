@@ -39,10 +39,12 @@ NGINX_NAME=dcos_int_nginx
 CERT_NAME=domain.crt
 KEY_NAME=domain.key
 PEM_NAME=domain.pem
+CA_NAME=ca.crt
 #ELK stack for logging
 ELK_CERT_NAME=logstash-forwarder.crt
 ELK_KEY_NAME=logstash-forwarder.key
 ELK_PEM_NAME=logstash-forwarder.pem
+ELK_CA_NAME=ca.crt
 ELK_HOSTNAME=$BOOTSTRAP_IP
 ELK_PORT=9200
 LOGSTASH_HOSTNAME=$BOOTSTRAP_IP
@@ -241,7 +243,7 @@ fi
 echo "** Generating a certificate for this domain..."
 
 #MASTERS and AGENTS: get the certificate from bootstrap node.
-mkdir -p /etc/pki/tls/
+mkdir -p /etc/pki/tls/certs
 mkdir -p $WORKING_DIR/genconf/serve  #to hold the cert before the serve is generated
 #add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
 sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
@@ -251,8 +253,11 @@ sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
  -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
- openssl x509 -inform DER -outform PEM -in domain.crt -out domain.crt.pem
+openssl x509 -inform DER -outform PEM -in domain.crt -out domain.crt.pem
+#copy the generated cert as $ELK_CA_NAME (certificate authority)
+sudo cp $WORKING_DIR/genconf/serve/domain.crt /etc/pki/tls/certs/$CA_NAME
 echo "** DEBUG: Certificate generated: "$(ls $WORKING_DIR/genconf/serve/domain*)
+
 
 #Installer
 #################################################################
@@ -554,6 +559,7 @@ echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 sudo mkdir -p /etc/pki/tls/certs
 sudo mkdir -p /etc/pki/tls/client
 curl -o /etc/pki/tls/certs/$ELK_CERT_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME 
+curl -o /etc/pki/tls/certs/$ELK_CA_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CA_NAME
 curl -o /etc/pki/tls/private/$ELK_KEY_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$KEY_NAME 
 curl -o /etc/pki/tls/client/$ELK_PEM_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$PEM_NAME 
 
@@ -573,20 +579,20 @@ filebeat.prospectors:
     - /var/log/*.log
 tail_files: true
 
-output.elasticsearch:
+#output.elasticsearch:
 # Array of hosts to connect to.
-hosts: ["localhost:9200"]
+#hosts: ["localhost:9200"]
 
 output.logstash:
   # The Logstash hosts
   hosts: ["localhost:5044"]
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
-  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
+  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  #ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/logstash-forwarder.key"
+  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 
 - input_type: stdin
     #to do "cat /var/*.log | filebeat -e -v -c /etc/filebeat-stdin-dcos.yml
@@ -595,20 +601,20 @@ output.logstash:
    - "-"
 tail_files: true
 
-output.elasticsearch:
-  # Array of hosts to connect to.
-  hosts: ["localhost:9200"]
+#output.elasticsearch:
+#  # Array of hosts to connect to.
+#  hosts: ["localhost:9200"]
 
 output.logstash:
   # The Logstash hosts
   hosts: ["localhost:5044"]
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
-  ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
+  ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  #ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/logstash-forwarder.key"
+  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
 sudo systemctl start filebeat
 sudo chkconfig filebeat on
@@ -772,13 +778,16 @@ cp $WORKING_DIR/genconf/serve/$KEY_NAME /etc/pki/tls/private/$ELK_KEY_NAME
 
 #Add logstash config
 # beats input that listens on 5044 and uses the SSL cert
+#https://www.elastic.co/guide/en/beats/filebeat/5.0/configuring-ssl-logstash.html
 sudo tee /etc/logstash/conf.d/02-beats-input.conf <<-EOF 
 input {
   beats {
     port => 5044
     ssl => true
+    ssl_certificate_authorities => ["/etc/pki/tls/certs/$ELK_CA_NAME"]
     ssl_certificate => /etc/pki/tls/certs/$ELK_CERT_NAME
     ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
+    ssl_verify_mode => "force_peer"
   }
 }
 EOF
