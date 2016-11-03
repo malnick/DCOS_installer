@@ -253,7 +253,7 @@ sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
  -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
-openssl x509 -inform DER -outform PEM -in domain.crt -out domain.crt.pem
+openssl x509 -inform DER -outform PEM -in $WORKING_DIR/genconf/serve/domain.crt -out $WORKING_DIR/genconf/serve/$PEM_NAME
 #copy the generated cert as $ELK_CA_NAME (certificate authority)
 sudo cp $WORKING_DIR/genconf/serve/domain.crt /etc/pki/tls/certs/$CA_NAME
 echo "** DEBUG: Certificate generated: "$(ls $WORKING_DIR/genconf/serve/domain*)
