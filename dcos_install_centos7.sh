@@ -539,16 +539,18 @@ if [[ $ERROR = *[!\ ]* ]]; then
   echo -e "** Node installation ${RED}FAILED${NC}. This is likely due to download or unpacking glitches. Please ${BLUE}run the installer again${NC}"
   exit 0
 else
-  echo "** Node installed successfully."
+  echo "** DC/OS Node installed successfully."
 fi
 EOF2
 
 #MASTERS and AGENTS : install Filebeat (logstash-forwarder) to send logs to ELK on bootstrap
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
+echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 
-#copy SSL certificate from bootstrap
+#copy SSL certificate and key from bootstrap
 sudo mkdir -p /etc/pki/tls/certs
 curl -o /etc/pki/tls/certs/$ELK_CERT_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME 
+curl -o /etc/pki/client/$ELK_KEY_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$KEY_NAME 
 
 #install filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-x86_64.rpm
@@ -559,23 +561,33 @@ sudo rpm -vi filebeat-5.0.0-x86_64.rpm
 sudo mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.BAK
 sudo tee /etc/filebeat/filebeat.yml <<-EOF 
 filebeat.prospectors:
-  - input_type: log
-      paths:
-        - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout"
-        - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr"
-        - /var/log/messages
-      document_type: syslog
+- input_type: log
+  paths:
+    - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout"
+    - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr"
+    - /var/log/*.log
+  document_type: syslog
       tail_files: true
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["localhost:9200"]
 
-    output:
-      ### Logstash as output
-      logstash:
-        hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
-      ### Elasticsearch directly as output?
-      #elasticsearch:
-      # hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
+output.logstash:
+  # The Logstash hosts
+  hosts: ["localhost:5044"]
 
-  - input_type: stdin
+  # Optional SSL. By default is off.
+  # List of root certificates for HTTPS server verifications
+  #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+
+  # Certificate for SSL client authentication
+  #ssl.certificate: "/etc/pki/client/cert.pem"
+
+  # Client Certificate Key
+  #ssl.key: "/etc/pki/client/cert.key"
+
+
+- input_type: stdin
     #to do "cat /var/*.log | filebeat -e -v -c /etc/filebeat-stdin-dcos.yml
     #likely need to define /etc/filebeat-stdin-dcos.yml
       paths:
@@ -588,11 +600,29 @@ filebeat.prospectors:
         hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
         bulk_max_size: 1024
 
-  tls:
-      # List of root certificates for HTTPS server verifications
-      certificate_authorities: ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
-EOF
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["localhost:9200"]
 
+output.logstash:
+  # The Logstash hosts
+  hosts: ["localhost:5044"]
+
+  # Optional SSL. By default is off.
+  # List of root certificates for HTTPS server verifications
+  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
+
+  # Certificate for SSL client authentication
+  #ssl.certificate: "/etc/pki/client/ccert.pem"
+
+  # Client Certificate Key
+  ssl.key: "/etc/pki/client/$ELK_KEY_NAME"
+EOF
+sudo systemctl start filebeat
+sudo chckonfig filebeat on
+
+echo "** Installed Filebeat (aka. logstash-forwarder) ... "
+  
 EOF2
 # $$ end of node installer
 #################################################################
@@ -745,8 +775,8 @@ sudo yum install -y logstash
 echo "** Configuring Logstash..."
 
 #copy bootstrap node's cert and key for ELK use
-cp $WORKING_DIR/genconf/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
-cp $WORKING_DIR/genconf/$KEY_NAME /etc/pki/tls/private/$ELK_KEY_NAME
+cp $WORKING_DIR/genconf/serve/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
+cp $WORKING_DIR/genconf/serve/$KEY_NAME /etc/pki/tls/private/$ELK_KEY_NAME
 
 #Add logstash config
 # beats input that listens on 5044 and uses the SSL cert
