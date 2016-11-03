@@ -585,7 +585,7 @@ tail_files: true
 
 output.logstash:
   # The Logstash hosts
-  hosts: ["localhost:5044"]
+  hosts: ["LOGSTASH_HOSTNAME:LOGSTASH_PORT"]
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
@@ -607,7 +607,7 @@ tail_files: true
 
 output.logstash:
   # The Logstash hosts
-  hosts: ["localhost:5044"]
+  hosts: ["LOGSTASH_HOSTNAME:LOGSTASH_PORT"]
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CA_NAME"]
