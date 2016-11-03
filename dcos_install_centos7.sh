@@ -237,7 +237,7 @@ fi
 #Generate certificate for docker registry, ELK and others
 #################################################################
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
- -keyout $WORKING_DIR/genconf/domain.key -out $WORKING_DIR/genconf/domain.crt \
+ -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
 
 #Installer
@@ -538,20 +538,11 @@ sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 
 #copy SSL certificate from bootstrap
 sudo mkdir -p /etc/pki/tls/certs
-curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME > /etc/pki/tls/certs/$ELK_CERT_NAME
-
+curl -o /etc/pki/tls/certs/$ELK_CERT_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME 
 
 #install filebeat
-sudo rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
-sudo tee /etc/yum.repos.d/elastic-beats.repo <<-EOF 
-[beats]
-name=Elastic Beats Repository
-baseurl=https://packages.elastic.co/beats/yum/el/$basearch
-enabled=1
-gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch
-gpgcheck=1
-EOF
-sudo yum -y install filebeat
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-x86_64.rpm
+sudo rpm -vi filebeat-5.0.0-x86_64.rpm
 
 #configure filebeat
 #TODO: configure filebeat differently on masters and agents
@@ -627,6 +618,36 @@ curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
  dcos config set core.dcos_url https://$MASTER_1 &&
  dcos config set core.ssl_verify false &&
  dcos
+
+
+#Provide a first command to copy&paste so that the nodes can be installed in parallel to ELK on Bootstrap
+#########################################################################################################
+sleep 3
+if [ -f $TEST_FILE ] && [ $(docker inspect -f {{.State.Running}} $NGINX_NAME) == "true" ]; then
+  echo -e "** ${BLUE}SUCCESS${NC}. Bootstrap node installed."
+  echo -e "** ${BLUE}COPY AND PASTE THE FOLLOWING INTO EACH NODE OF THE CLUSTER TO INSTALL DC/OS:"
+  echo -e ""
+  echo -e "${RED}sudo su"
+  echo -e "cd"
+  echo -e "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC} [ROLE]"
+  echo -e ""
+  echo -e ""
+  echo -e "** This Agent installation command is also saved in $WORKING_DIR/$COMMAND_FILE for future use."
+  echo -e "** ${BLUE}Done${NC}."
+  exit 1
+else
+  echo -e "** Bootstrap node installation ${RED}FAILED${NC}."
+  echo "** Deleting temporary files..."
+  #remove password hash so that it's calculated again
+  rm $PASSWORD_HASH_FILE
+  #remove calculated unpacked tar file (assuming decompression/hashing failed)
+  rm $UNPACKED_INSTALLER_FILE
+  #remove nginx container
+  sudo docker rm -f $NGINX_NAME
+  #TODO FIXME: possibly also removed downloaded installer (assuming download failed)
+  echo -e "** Temporary files deleted. Please ${BLUE}run the installer again${NC}."
+  exit 0
+fi
 
 
 # Install ELK on Bootstrap node:
@@ -793,7 +814,7 @@ curl -XPUT 'http://localhost:9200/_template/filebeat?pretty' -d@filebeat-index-t
 ################################################################################################################################
 ################################################################################################################################
 
-#Check that installation finished successfully.
+#Final reminder of command: Check that installation finished successfully.
 #################################################################
 sleep 3
 if [ -f $TEST_FILE ] && [ $(docker inspect -f {{.State.Running}} $NGINX_NAME) == "true" ]; then
