@@ -657,7 +657,7 @@ sudo yum -y install elasticsearch
 echo "** Configuring Elasticsearch..."
 sudo cp /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.BAK
 #https://gist.github.com/zsprackett/8546403
-sudo tee /etc/yum.repos.d/elasticsearch.repo <<-EOF
+sudo tee /etc/elasticsearch/elasticsearch.yml <<-EOF
 cluster.name: $CLUSTERNAME
 node.name: $CLUSTERNAME
 node.master: true
@@ -675,6 +675,7 @@ indices.recovery.max_bytes_per_sec: 100mb
 EOF
 #start elasticsearch
 echo "** Starting Elasticsearch..."
+sudo systemctl daemon-reload
 sudo systemctl start elasticsearch
 sudo systemctl enable elasticsearch
 
@@ -714,7 +715,8 @@ sudo yum install -y logstash
 echo "** Configuring Logstash..."
 #add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
 sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
-sudo sed -i -e 's/[ v3_ca ]/[ v3_ca ]\nsubjectAltName = IP: $BOOTSTRAP_IP\n/g'
+#swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
+sudo sed -i -e  's/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g' /etc/pki/tls/openssl.cnf
 
 #copy bootstrap node's cert and key for ELK use
 cp $WORKING_DIR/genconf/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
