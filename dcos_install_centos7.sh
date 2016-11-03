@@ -172,7 +172,7 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #docker engine with selinux and other requirements
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp 
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp
 
 #configure ntp
 sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \
@@ -237,11 +237,14 @@ fi
 #Generate certificate for docker registry, ELK and others
 #################################################################
 echo "** Generating a certificate for this domain..."
+
+#MASTERS and AGENTS: get the certificate from bootstrap node.
 mkdir -p /etc/pki/tls/
 #add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
 sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
 #swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
 sudo sed -i -e  's/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g' /etc/pki/tls/openssl.cnf
+
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
  -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
