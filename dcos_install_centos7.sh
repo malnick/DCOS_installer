@@ -550,7 +550,7 @@ echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 #copy SSL certificate and key from bootstrap
 sudo mkdir -p /etc/pki/tls/certs
 curl -o /etc/pki/tls/certs/$ELK_CERT_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME 
-curl -o /etc/pki/client/$ELK_KEY_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$KEY_NAME 
+curl -o /etc/pki/private/$ELK_KEY_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$KEY_NAME 
 
 #install filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-x86_64.rpm
@@ -578,13 +578,13 @@ output.logstash:
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
-  #ssl.certificate_authorities: ["/etc/pki/root/ca.pem"]
+  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
 
   # Certificate for SSL client authentication
   #ssl.certificate: "/etc/pki/client/cert.pem"
 
   # Client Certificate Key
-  #ssl.key: "/etc/pki/client/cert.key"
+  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 
 
 - input_type: stdin
@@ -616,7 +616,7 @@ output.logstash:
   #ssl.certificate: "/etc/pki/client/ccert.pem"
 
   # Client Certificate Key
-  ssl.key: "/etc/pki/client/$ELK_KEY_NAME"
+  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
 sudo systemctl start filebeat
 sudo chckonfig filebeat on
