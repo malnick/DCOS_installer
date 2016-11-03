@@ -236,9 +236,16 @@ fi
 
 #Generate certificate for docker registry, ELK and others
 #################################################################
+echo "** Generating a certificate for this domain..."
+mkdir -p /etc/pki/tls/
+#add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
+sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
+#swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
+sudo sed -i -e  's/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g' /etc/pki/tls/openssl.cnf
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
  -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
+echo "** DEBUG: Certificate generated: "$(ls $WORKING_DIR/genconf/serve/domain*)
 
 #Installer
 #################################################################
@@ -734,10 +741,6 @@ EOF
 sudo yum install -y logstash
 #configure logstash
 echo "** Configuring Logstash..."
-#add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
-sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
-#swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
-sudo sed -i -e  's/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g' /etc/pki/tls/openssl.cnf
 
 #copy bootstrap node's cert and key for ELK use
 cp $WORKING_DIR/genconf/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
