@@ -619,7 +619,7 @@ output.logstash:
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
 sudo systemctl start filebeat
-sudo chckonfig filebeat on
+sudo chkconfig filebeat on
 
 echo "** Installed Filebeat (aka. logstash-forwarder) ... "
   
