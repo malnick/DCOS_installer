@@ -566,7 +566,6 @@ filebeat.prospectors:
     - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout"
     - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr"
     - /var/log/*.log
-  document_type: syslog
       tail_files: true
 output.elasticsearch:
   # Array of hosts to connect to.
