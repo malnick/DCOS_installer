@@ -36,10 +36,15 @@ TEST_FILE=$WORKING_DIR/genconf/serve/dcos_install.sh
 MASTER_IP_FILE=$WORKING_DIR/.masterip
 UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
 NGINX_NAME=dcos_int_nginx
-ELK_CERT_NAME=domain.crt
-ELK_KEY_NAME=domain.key
+CERT_NAME=domain.crt
+KEY_NAME=domain.key
+#ELK stack for logging
+ELK_CERT_NAME=logstash-forwarder.crt
+ELK_KEY_NAME=logstash-forwarder.key
 ELK_HOSTNAME=$BOOTSTRAP_IP
-ELK_PORT=$BOOTSTRAP_PORT
+ELK_PORT=9200
+LOGSTASH_HOSTNAME=$BOOTSTRAP_IP
+LOGSTASH_PORT=5044
 
 #pretty colours
 RED='\033[0;31m'
@@ -231,7 +236,8 @@ fi
 
 #Generate certificate for docker registry, ELK and others
 #################################################################
-openssl req -nodes -newkey rsa:2048 -keyout $WORKING_DIR/genconf/domain.key -out $WORKING_DIR/genconf/domain.crt \
+openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
+ -keyout $WORKING_DIR/genconf/domain.key -out $WORKING_DIR/genconf/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
 
 #Installer
@@ -359,6 +365,7 @@ echo "** Generating agent launcher..."
 mkdir -p $WORKING_DIR/genconf/serve/
 # $$ start node installer
 # $$ 'EOF2' with ticks - "leave variable names as they are here"
+# $$ EOF2 without ticks - "substitute variables on generation"
 sudo cat > $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #!/bin/bash
 #
@@ -426,10 +433,8 @@ if [ ! -f $ROLE_FILE ]; then
 else
   ROLE=`cat $ROLE_FILE`
 fi
-EOF2
 
 #Update system
-sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 echo "** Updating system..."
 sudo yum update --exclude=docker-engine,docker-engine-selinux --assumeyes --tolerant
 EOF2
@@ -474,12 +479,16 @@ EOF
 #install docker engine, daemon and service, along with dependencies
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
  wget tar xz curl zip unzip ipset ntp 
+EOF2
 
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 #configure ntp
-sudo echo "server pool.ntp.org" > /etc/ntp.conf && \
+sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \
 sudo systemctl start ntpd && \
 sudo systemctl enable ntpd
+EOF2
 
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #add overlay storage driver
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
@@ -507,9 +516,6 @@ if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]];
   echo -e "${RED}systemctl stop docker && systemctl daemon-reload${NC}"
   read -p "** Press Enter to exit..."
   exit 1
-else
-  #run the installer
-  sudo bash $WORKING_DIR/$BOOTSTRAP_FILE
 fi
 
 echo "** Running installer as $ROLE..."
@@ -525,75 +531,16 @@ else
   echo "** Node installed successfully."
   exit 1
 fi
+EOF2
 
-#install logstash-forwarder
-echo "** Installing logstash-forwarder..."
-#add logstash repo
-sudo tee /etc/yum.repos.d/logstash.repo <<-EOF 
-[logstash-2.2]
-name=logstash repository for 2.2 packages
-baseurl=http://packages.elasticsearch.org/logstash/2.2/centos
-gpgcheck=1
-gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
-enabled=1
-EOF
-#MASTER: install logstash
-sudo yum install -y logstash
-#MASTER: get the domain certificate and key from bootstrap node for ELK
-sudo mkdir -p /etc/pki/tls/private/
-curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_CERT_NAME > /etc/pki/tls/$ELK_CERT_NAME
-curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_KEY_NAME > /etc/pki/tls/private/$ELK_KEY_NAME
-#MASTER: add logstash config
-#MASTER: beats input that listens on 5044 and uses the SSL cert
-sudo tee /etc/logstash/conf.d/02-beats-input.conf <<-EOF 
-input {
-  beats {
-    port => 5044
-    ssl => true
-    ssl_certificate => "/etc/pki/tls/$ELK_CERT_NAME"
-    ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
-  }
-}
-EOF
-#MASTER: filter looks for logs that are labeled as "syslog" type (by Filebeat), 
-#and it will try to use grok to parse incoming syslog logs to make it structured and query-able
-sudo tee /etc/logstash/conf.d/10-syslog-filter.conf <<-EOF 
-filter {
-  if [type] == "syslog" {
-    grok {
-      match => { "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:syslog_hostname} %{DATA:syslog_program}(?:\[%{POSINT:syslog_pid}\])?: %{GREEDYDATA:syslog_message}" }
-      add_field => [ "received_at", "%{@timestamp}" ]
-      add_field => [ "received_from", "%{host}" ]
-    }
-    syslog_pri { }
-    date {
-      match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
-    }
-  }
-}
-EOF
-#MASTER: configures Logstash to store the beats data in Elasticsearch which is running at localhost:9200, 
-#in an index named after the beat used (filebeat, in our case)
-sudo tee /etc/logstash/conf.d/30-elasticsearch-output.conf <<-EOF 
-output {
-  elasticsearch {
-    hosts => ["localhost:9200"]
-    sniffing => true
-    manage_template => false
-    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
-    document_type => "%{[@metadata][type]}"
-  }
-}
-EOF
-echo "** Launching logstash-forwarder..."
-sudo service logstash configtest
-sudo systemctl restart logstash
-sudo chkconfig logstash on
+#MASTERS and AGENTS : install Filebeat (logstash-forwarder) to send logs to ELK on bootstrap
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 
-#AGENT: install Filebeat (logstash-forwarder):
-#copy SSL certificate
+#copy SSL certificate from bootstrap
 sudo mkdir -p /etc/pki/tls/certs
-curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$ELK_CERT_NAME > /etc/pki/tls/certs/$ELK_CERT_NAME
+curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME > /etc/pki/tls/certs/$ELK_CERT_NAME
+
+
 #install filebeat
 sudo rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
 sudo tee /etc/yum.repos.d/elastic-beats.repo <<-EOF 
@@ -605,27 +552,44 @@ gpgkey=https://packages.elastic.co/GPG-KEY-elasticsearch
 gpgcheck=1
 EOF
 sudo yum -y install filebeat
+
 #configure filebeat
+#TODO: configure filebeat differently on masters and agents
 sudo mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.BAK
 sudo tee /etc/filebeat/filebeat.yml <<-EOF 
 filebeat.prospectors:
-- input_type: log
-  paths:
-    - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout
-    - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr
-  output.elasticsearch:
-  hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
-  ### Logstash as output
+  - input_type: log
+      paths:
+        - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout"
+        - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr"
+        - /var/log/messages
+      document_type: syslog
+      tail_files: true
 
-logstash:
-    # The Logstash hosts
-    hosts: ["ELK_server_private_IP:5044"]
-    bulk_max_size: 1024
+    output:
+      ### Logstash as output
+      logstash:
+        hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
+      ### Elasticsearch directly as output?
+      #elasticsearch:
+      # hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
+
+  - input_type: stdin
+    #to do "cat /var/*.log | filebeat -e -v -c /etc/filebeat-stdin-dcos.yml
+    #likely need to define /etc/filebeat-stdin-dcos.yml
+      paths:
+        - "-"
+        document_type: syslog
+        tail_files: true
+    output:
+      ### Logstash as output
+      logstash:
+        hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
+        bulk_max_size: 1024
 
   tls:
       # List of root certificates for HTTPS server verifications
-      certificate_authorities: ["/etc/pki/tls/certs/logstash-forwarder.crt"]
-
+      certificate_authorities: ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
 EOF
 
 EOF2
@@ -664,6 +628,165 @@ curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
  dcos config set core.ssl_verify false &&
  dcos
 
+
+# Install ELK on Bootstrap node:
+################################################################################################################################
+################################################################################################################################
+
+echo "** Installing ELK..."
+
+#Install Java 8
+echo "** Installing Java 8..."
+wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.rpm"
+sudo yum -y localinstall jdk-8u73-linux-x64.rpm
+rm jdk-8u*-linux-x64.rpm
+
+#Install elasticsearch
+echo "** Installing Elasticsearch..."
+sudo rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
+sudo tee /etc/yum.repos.d/elasticsearch.repo <<-EOF 
+[elasticsearch-2.x]
+name=Elasticsearch repository for 2.x packages
+baseurl=http://packages.elastic.co/elasticsearch/2.x/centos
+gpgcheck=1
+gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+EOF
+sudo yum -y install elasticsearch
+#configure elasticsearch
+echo "** Configuring Elasticsearch..."
+sudo cp /etc/elasticsearch/elasticsearch.yml /etc/elasticsearch/elasticsearch.yml.BAK
+#https://gist.github.com/zsprackett/8546403
+sudo tee /etc/yum.repos.d/elasticsearch.repo <<-EOF
+cluster.name: $CLUSTERNAME
+node.name: $CLUSTERNAME
+node.master: true
+node.data: true
+index.number_of_shards: 2
+index.number_of_replicas: 1
+bootstrap.mlockall: true
+gateway.recover_after_nodes: 1
+gateway.recover_after_time: 10m
+gateway.expected_nodes: 1
+action.disable_close_all_indices: true
+action.disable_delete_all_indices: true
+action.disable_shutdown: true
+indices.recovery.max_bytes_per_sec: 100mb
+EOF
+#start elasticsearch
+echo "** Starting Elasticsearch..."
+sudo systemctl start elasticsearch
+sudo systemctl enable elasticsearch
+
+#Install Kibana
+echo "** Installing Kibana..."
+sudo tee /etc/yum.repos.d/kibana.repo <<-EOF
+[kibana-4.4]
+name=Kibana repository for 4.4.x packages
+baseurl=http://packages.elastic.co/kibana/4.4/centos
+gpgcheck=1
+gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+EOF
+sudo yum -y install kibana
+#configure kibana
+#echo "** Configuring Kibana..."
+#sudo cp /opt/kibana/config/kibana.yml /opt/kibana/config/kibana.yml.BAK
+#start kibana
+echo "** Starting Kibana..."
+sudo systemctl start kibana
+sudo chkconfig kibana on
+
+#Install Logstash
+echo "** Installing Logstash..."
+#add logstash repo
+sudo tee /etc/yum.repos.d/logstash.repo <<-EOF 
+[logstash-2.2]
+name=logstash repository for 2.2 packages
+baseurl=http://packages.elasticsearch.org/logstash/2.2/centos
+gpgcheck=1
+gpgkey=http://packages.elasticsearch.org/GPG-KEY-elasticsearch
+enabled=1
+EOF
+#install logstash
+sudo yum install -y logstash
+#configure logstash
+echo "** Configuring Logstash..."
+#add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
+sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
+sudo sed -i -e 's/[ v3_ca ]/[ v3_ca ]\nsubjectAltName = IP: $BOOTSTRAP_IP\n/g'
+
+#copy bootstrap node's cert and key for ELK use
+cp $WORKING_DIR/genconf/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
+cp $WORKING_DIR/genconf/$KEY_NAME /etc/pki/tls/private/$ELK_KEY_NAME
+
+#Add logstash config
+# beats input that listens on 5044 and uses the SSL cert
+sudo tee /etc/logstash/conf.d/02-beats-input.conf <<-EOF 
+input {
+  beats {
+    port => 5044
+    ssl => true
+    ssl_certificate => "/etc/pki/tls/$ELK_CERT_NAME"
+    ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
+  }
+}
+EOF
+#filter looks for logs that are labeled as "syslog" type (by Filebeat), 
+#and it will try to use grok to parse incoming syslog logs to make it structured and query-able
+sudo tee /etc/logstash/conf.d/10-syslog-filter.conf <<-EOF 
+filter {
+  if [type] == "syslog" {
+    grok {
+      match => { "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:syslog_hostname} %{DATA:syslog_program}(?:\[%{POSINT:syslog_pid}\])?: %{GREEDYDATA:syslog_message}" }
+      add_field => [ "received_at", "%{@timestamp}" ]
+      add_field => [ "received_from", "%{host}" ]
+    }
+    syslog_pri { }
+    date {
+      match => [ "syslog_timestamp", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss" ]
+    }
+  }
+}
+EOF
+#configures Logstash to store the beats data in Elasticsearch which is running at localhost:9200, 
+#in an index named after the beat used (filebeat, in our case)
+sudo tee /etc/logstash/conf.d/30-elasticsearch-output.conf <<-EOF 
+output {
+  elasticsearch {
+    hosts => ["localhost:9200"]
+    sniffing => true
+    manage_template => false
+    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+    document_type => "%{[@metadata][type]}"
+  }
+}
+EOF
+echo "** Checking logstash configuration..."
+sudo service logstash configtest
+echo "** Launching logstash..."
+sudo systemctl restart logstash
+sudo chkconfig logstash on
+
+#Load Kibana dashboards
+echo "** Loading Kibana dashboards..."
+mkdir -p $WORKING_DIR/kibana
+cd $WORKING_DIR/kibana
+curl -L -O https://download.elastic.co/beats/dashboards/beats-dashboards-1.1.0.zip
+unzip beats-dashboards-*.zip
+cd beats-dashboards-*
+./load.sh
+
+#Load Filebeat index template in elasticsearch
+echo "** Loading Filebeat index templates..."
+mkdir -p $WORKING_DIR/filebeat
+cd $WORKING_DIR/filebeat
+curl -O https://gist.githubusercontent.com/thisismitch/3429023e8438cc25b86c/raw/d8c479e2a1adcea8b1fe86570e42abab0f10f364/filebeat-index-template.json
+
+#End of ELK install on bootstrap node
+################################################################################################################################
+################################################################################################################################
+
 #Check that installation finished successfully.
 #################################################################
 sleep 3
@@ -692,3 +815,5 @@ else
   echo -e "** Temporary files deleted. Please ${BLUE}run the installer again${NC}."
   exit 0
 fi
+
+
