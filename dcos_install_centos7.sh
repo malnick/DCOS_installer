@@ -38,9 +38,11 @@ UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
 NGINX_NAME=dcos_int_nginx
 CERT_NAME=domain.crt
 KEY_NAME=domain.key
+PEM_NAME=domain.pem
 #ELK stack for logging
 ELK_CERT_NAME=logstash-forwarder.crt
 ELK_KEY_NAME=logstash-forwarder.key
+ELK_PEM_NAME=logstash-forwarder.pem
 ELK_HOSTNAME=$BOOTSTRAP_IP
 ELK_PORT=9200
 LOGSTASH_HOSTNAME=$BOOTSTRAP_IP
@@ -249,6 +251,7 @@ sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
  -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
+ openssl x509 -inform DER -outform PEM -in domain.crt -out domain.crt.pem
 echo "** DEBUG: Certificate generated: "$(ls $WORKING_DIR/genconf/serve/domain*)
 
 #Installer
@@ -549,8 +552,10 @@ echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 
 #copy SSL certificate and key from bootstrap
 sudo mkdir -p /etc/pki/tls/certs
+sudo mkdir -p /etc/pki/tls/client
 curl -o /etc/pki/tls/certs/$ELK_CERT_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME 
 curl -o /etc/pki/tls/private/$ELK_KEY_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$KEY_NAME 
+curl -o /etc/pki/tls/client/$ELK_PEM_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$PEM_NAME 
 
 #install filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-x86_64.rpm
@@ -563,41 +568,32 @@ sudo tee /etc/filebeat/filebeat.yml <<-EOF
 filebeat.prospectors:
 - input_type: log
   paths:
-    - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout"
-    - "/var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr"
+    - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout
+    - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr
     - /var/log/*.log
-      tail_files: true
+tail_files: true
+
 output.elasticsearch:
-  # Array of hosts to connect to.
-  hosts: ["localhost:9200"]
+# Array of hosts to connect to.
+hosts: ["localhost:9200"]
 
 output.logstash:
   # The Logstash hosts
   hosts: ["localhost:5044"]
-
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
-
   # Certificate for SSL client authentication
-  #ssl.certificate: "/etc/pki/client/cert.pem"
-
+  #ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
-
+  ssl.key: "/etc/pki/tls/private/logstash-forwarder.key"
 
 - input_type: stdin
     #to do "cat /var/*.log | filebeat -e -v -c /etc/filebeat-stdin-dcos.yml
     #likely need to define /etc/filebeat-stdin-dcos.yml
-      paths:
-        - "-"
-        document_type: syslog
-        tail_files: true
-    output:
-      ### Logstash as output
-      logstash:
-        hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
-        bulk_max_size: 1024
+  paths:
+   - "-"
+tail_files: true
 
 output.elasticsearch:
   # Array of hosts to connect to.
@@ -606,16 +602,13 @@ output.elasticsearch:
 output.logstash:
   # The Logstash hosts
   hosts: ["localhost:5044"]
-
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
-  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
-
+  ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CERT_NAME"]
   # Certificate for SSL client authentication
-  #ssl.certificate: "/etc/pki/client/ccert.pem"
-
+  #ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
+  ssl.key: "/etc/pki/tls/private/logstash-forwarder.key"
 EOF
 sudo systemctl start filebeat
 sudo chkconfig filebeat on
@@ -784,7 +777,7 @@ input {
   beats {
     port => 5044
     ssl => true
-    ssl_certificate => "/etc/pki/tls/certs/$ELK_CERT_NAME"
+    ssl_certificate => /etc/pki/tls/certs/$ELK_CERT_NAME
     ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
   }
 }
