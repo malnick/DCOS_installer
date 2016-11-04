@@ -587,43 +587,19 @@ filebeat.prospectors:
     - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr
     - /var/log/*.log
 tail_files: true
-
 #output.elasticsearch:
 # Array of hosts to connect to.
-#hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
-
+#hosts: ["172.31.18.175:9200"]
 output.logstash:
   # The Logstash hosts
-  hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
+  hosts: ["172.31.18.175:5044"]
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
-  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
+  ssl.certificate_authorities: ["/etc/pki/tls/certs/ca.crt"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/logstash-forwarder.crt"
   # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
-
-- input_type: stdin
-    #to do "cat /var/*.log | filebeat -e -v -c /etc/filebeat-stdin-dcos.yml
-    #likely need to define /etc/filebeat-stdin-dcos.yml
-  paths:
-   - "-"
-tail_files: true
-
-#output.elasticsearch:
-#  # Array of hosts to connect to.
-#  hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
-
-output.logstash:
-  # The Logstash hosts
-  hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
-  # Optional SSL. By default is off.
-  # List of root certificates for HTTPS server verifications
-  ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CA_NAME"]
-  # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
-  # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
+  ssl.key: "/etc/pki/tls/private/logstash-forwarder.key"
 EOF
 sudo systemctl start filebeat
 sudo chkconfig filebeat on
