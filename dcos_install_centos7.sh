@@ -242,20 +242,18 @@ fi
 #################################################################
 echo "** Generating a certificate for this domain..."
 
-#MASTERS and AGENTS: get the certificate from bootstrap node.
-mkdir -p /etc/pki/tls/certs
 mkdir -p $WORKING_DIR/genconf/serve  #to hold the cert before the serve is generated
 #add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
 sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
-#swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
+#cert config: swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
 sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g" /etc/pki/tls/openssl.cnf
-
+#create the cert with the config
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
  -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
 openssl x509 -inform DER -outform PEM -in $WORKING_DIR/genconf/serve/$CERT_NAME -out $WORKING_DIR/genconf/serve/$PEM_NAME
-#copy the generated cert as $ELK_CA_NAME (certificate authority)
-sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME /etc/pki/tls/certs/$CA_NAME
+sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME $WORKING_DIR/genconf/serve/$CA_NAME
+
 echo "** DEBUG: Certificate generated: "$(ls $WORKING_DIR/genconf/serve/domain*)
 
 
@@ -691,7 +689,7 @@ fi
 ################################################################################################################################
 ################################################################################################################################
 
-echo "** Installing ELK..."
+echo "** Installing ${BLUE}ELK${NC}..."
 
 #Install Java 8
 echo "** Installing Java 8..."
@@ -772,9 +770,12 @@ sudo yum install -y logstash
 #configure logstash
 echo "** Configuring Logstash..."
 
-#copy bootstrap node's cert and key for ELK use
-cp $WORKING_DIR/genconf/serve/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
-cp $WORKING_DIR/genconf/serve/$KEY_NAME /etc/pki/tls/private/$ELK_KEY_NAME
+#copy bootstrap node's cert, CA and key for ELK use
+mkdir -p /etc/pki/tls/certs
+mkdir -p /etc/pki/tls/private
+sudo cp $WORKING_DIR/genconf/serve/$CA_NAME /etc/pki/tls/certs/$ELK_CA_NAME
+sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
+sudo cp $WORKING_DIR/genconf/serve/$KEY_NAME /etc/pki/tls/private/$ELK_KEY_NAME
 
 #Add logstash config
 # beats input that listens on 5044 and uses the SSL cert
@@ -785,7 +786,7 @@ input {
     port => 5044
     ssl => true
     ssl_certificate_authorities => ["/etc/pki/tls/certs/$ELK_CA_NAME"]
-    ssl_certificate => /etc/pki/tls/certs/$ELK_CERT_NAME
+    ssl_certificate => "/etc/pki/tls/certs/$ELK_CERT_NAME"
     ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
     ssl_verify_mode => "force_peer"
   }
