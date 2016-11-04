@@ -249,7 +249,7 @@ sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
 sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g" /etc/pki/tls/openssl.cnf
 #create the cert with the config
 openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
- -keyout $WORKING_DIR/genconf/serve/domain.key -out $WORKING_DIR/genconf/serve/domain.crt \
+ -keyout $WORKING_DIR/genconf/serve/$KEY_NAME -out $WORKING_DIR/genconf/serve/$CERT_NAME \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
 openssl x509 -inform DER -outform PEM -in $WORKING_DIR/genconf/serve/$CERT_NAME -out $WORKING_DIR/genconf/serve/$PEM_NAME
 sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME $WORKING_DIR/genconf/serve/$CA_NAME
