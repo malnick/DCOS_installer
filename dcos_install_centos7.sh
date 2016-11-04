@@ -597,9 +597,9 @@ output.logstash:
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities: ["/etc/pki/tls/certs/ca.crt"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/logstash-forwarder.crt"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
-  ssl.key: "/etc/pki/tls/private/logstash-forwarder.key"
+  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
 sudo systemctl start filebeat
 sudo chkconfig filebeat on
