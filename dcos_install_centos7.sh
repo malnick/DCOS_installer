@@ -15,7 +15,7 @@ PASSWORD=deleteme
 DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
 CLI_DOWNLOAD_URL="https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos"
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
-CLUSTERNAME="DC/OS @ "$(hostname)
+CLUSTERNAME="DCOS@"$(hostname)
 BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
  '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #this node's eth0
 BOOTSTRAP_PORT=81                                          #any free/open port
