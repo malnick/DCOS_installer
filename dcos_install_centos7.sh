@@ -50,6 +50,11 @@ ELK_HOSTNAME=$BOOTSTRAP_IP
 ELK_PORT=9200
 LOGSTASH_HOSTNAME=$BOOTSTRAP_IP
 LOGSTASH_PORT=5044
+FILEBEAT_JOURNALCTL_CONFIG=/etc/filebeat/filebeat_journald.yml
+FILEBEAT_JOURNALCTL_SERVICE=dcos-journalctl-filebeat.service
+FILEBEAT_JOURNALCTL_MASTER_CONFIG=/etc/filebeat/filebeat_journald-master.yml
+FILEBEAT_JOURNALCTL_MASTER_SERVICE=dcos-journalctl-filebeat-master.service
+
 
 #pretty colours
 RED='\033[0;31m'
@@ -585,7 +590,7 @@ filebeat.prospectors:
   paths:
     - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stdout
     - /var/lib/mesos/slave/slaves/*/frameworks/*/executors/*/runs/latest/stderr
-    - /var/log/*.log
+    - /var/log/mesos/*.log
 tail_files: true
 #output.elasticsearch:
 # Array of hosts to connect to.
@@ -604,6 +609,50 @@ EOF
 sudo systemctl start filebeat
 sudo chkconfig filebeat on
 echo "** Installed Filebeat (aka. logstash-forwarder) ... "
+
+#All nodes: service to continually parse journalctl and send to logstash anything with "dcos"
+echo "** Configuring Filebeat to parse DC/OS journalctl logs ..."
+sudo tee $FILEBEAT_JOURNALCTL_CONFIG<<-EOF 
+filebeat.prospectors:
+- input_type: stdin
+  paths:
+    - "-"
+tail_files: true
+
+  # The Logstash hosts
+  hosts: ["172.31.18.175:5044"]
+  # Optional SSL. By default is off.
+  # List of root certificates for HTTPS server verifications
+  ssl.certificate_authorities: ["/etc/pki/tls/certs/ca.crt"]
+  # Certificate for SSL client authentication
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
+  # Client Certificate Key
+  ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
+EOF
+
+echo "** Creating service to parse DC/OS logs into Filebeat ..."
+sudo tee /etc/systemd/system/multi-user.target.wants/$FILEBEAT_JOURNALCTL_SERVICE<<-EOF 
+[Unit]
+Description=DCOS journalctl parser to filebeat
+Wants=filebeat.service
+After=filebeat.service
+
+[Service]
+Restart=always
+RestartSec=5
+ExecStart=journalctl -fl | grep dcos | filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl start $FILEBEAT_JOURNALCTL_SERVICE
+sudo systemctl enable $FILEBEAT_JOURNALCTL_SERVICE
+#TODO: do granular and precise logging based on different journalctl -flu [SERVICE] commands
+#TODO: differentiate logs for MASTER and AGENTS
+
+
 EOF2
 fi #if INSTALL_ELK=true
 
