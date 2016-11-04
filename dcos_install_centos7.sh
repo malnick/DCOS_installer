@@ -130,7 +130,7 @@ echo "**************************************************************************
           echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
-    [nN]) read -p "** Enter number of parameter to modify [1-8]: " PARAMETER
+    [nN]) read -p "** Enter number of parameter to modify [1-9]: " PARAMETER
           case $PARAMETER in
             [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
                  ;;
@@ -148,9 +148,9 @@ echo "**************************************************************************
                  ;;
             [8]) read -p "Enter new value for NTP server: " NTP_SERVER
                  ;;
-            [9]) if [ "$INSTALL_ELK" = false ]; then [ "$INSTALL_ELK" = true ] else [ "$INSTALL_ELK" = false ]
+            [9]) if [ INSTALL_ELK == false ]; then [ INSTALL_ELK = true ] else [ INSTALL_ELK = false ]; fi
                  ;;                       
-              *) echo "** Invalid input. Please choose an option [1-8]"
+              *) echo "** Invalid input. Please choose an option [1-9]"
                  ;;
           esac
           ;;
