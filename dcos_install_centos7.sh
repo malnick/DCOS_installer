@@ -148,7 +148,7 @@ echo "**************************************************************************
                  ;;
             [8]) read -p "Enter new value for NTP server: " NTP_SERVER
                  ;;
-            [9]) if [ INSTALL_ELK == false ]; then [ INSTALL_ELK = true ]; else [ INSTALL_ELK = false ]; fi
+            [9]) if [ "$INSTALL_ELK" = "false" ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;                       
               *) echo "** Invalid input. Please choose an option [1-9]"
                  ;;
