@@ -23,6 +23,7 @@ WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true 
+INSTALL_ELK=false
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -116,6 +117,7 @@ echo "5) IP for this bootstrap server:       "$BOOTSTRAP_IP
 echo "6) TCP port for bootstrap server:      "$BOOTSTRAP_PORT
 echo "7) Installation directory:             "$WORKING_DIR
 echo "8) NTP server:                         "$NTP_SERVER
+echo "9) Install ELK:                        "$INSTALL_ELK
 echo ""
 echo "******************************************************************************"
 
@@ -145,7 +147,9 @@ echo "**************************************************************************
             [7]) read -p "Enter new value for Installation Directory: " WORKING_DIR
                  ;;
             [8]) read -p "Enter new value for NTP server: " NTP_SERVER
-                 ;;                 
+                 ;;
+            [9]) if [ "$INSTALL_ELK" = false ]; then [ "$INSTALL_ELK" = true ] else [ "$INSTALL_ELK" = false ]
+                 ;;                       
               *) echo "** Invalid input. Please choose an option [1-8]"
                  ;;
           esac
@@ -549,7 +553,9 @@ else
 fi
 EOF2
 
-#MASTERS and AGENTS : install Filebeat (logstash-forwarder) to send logs to ELK on bootstrap
+#Install filebeat (aka. logstash_forwarder) if Install_ELK = true.
+#####################################################################################
+if [ "$INSTALL_ELK" = true ]; then 
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 
@@ -617,10 +623,10 @@ output.logstash:
 EOF
 sudo systemctl start filebeat
 sudo chkconfig filebeat on
-
 echo "** Installed Filebeat (aka. logstash-forwarder) ... "
-  
 EOF2
+fi #if INSTALL_ELK=true
+
 # $$ end of node installer
 #################################################################
 
@@ -689,15 +695,13 @@ fi
 # Install ELK on Bootstrap node:
 ################################################################################################################################
 ################################################################################################################################
-
+if [ "$INSTALL_ELK" = true ]; then 
 echo -e "** Installing ${BLUE}ELK${NC}..."
-
 #Install Java 8
 echo "** Installing Java 8..."
 wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u73-b02/jdk-8u73-linux-x64.rpm"
 sudo yum -y localinstall jdk-8u73-linux-x64.rpm
 rm jdk-8u*-linux-x64.rpm
-
 #Install elasticsearch
 echo "** Installing Elasticsearch..."
 sudo rpm --import http://packages.elastic.co/GPG-KEY-elasticsearch
@@ -846,8 +850,7 @@ cd $WORKING_DIR/filebeat
 curl -O https://gist.githubusercontent.com/thisismitch/3429023e8438cc25b86c/raw/d8c479e2a1adcea8b1fe86570e42abab0f10f364/filebeat-index-template.json
 #load into localhost's elasticsearch
 curl -XPUT 'http://localhost:9200/_template/filebeat?pretty' -d@filebeat-index-template.json
-
-
+fi #if INSTALL_ELK = true
 #End of ELK install on bootstrap node
 ################################################################################################################################
 ################################################################################################################################
