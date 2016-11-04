@@ -555,6 +555,7 @@ echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 
 #copy SSL certificate and key from bootstrap
 sudo mkdir -p /etc/pki/tls/certs
+sudo mkdir -p /etc/pki/tls/private
 sudo mkdir -p /etc/pki/tls/client
 curl -o /etc/pki/tls/certs/$ELK_CERT_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME 
 curl -o /etc/pki/tls/certs/$ELK_CA_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CA_NAME
