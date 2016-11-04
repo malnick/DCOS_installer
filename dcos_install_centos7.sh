@@ -599,7 +599,7 @@ output.logstash:
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_CRT_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 
@@ -621,7 +621,7 @@ output.logstash:
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_CRT_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
