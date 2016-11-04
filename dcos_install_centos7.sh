@@ -130,7 +130,7 @@ echo "**************************************************************************
           echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
-    [nN]) read -p "** Enter number of parameter to modify [1-9]: " PARAMETER
+    [nN]) read -p "** Enter number of parameter to modify [1-8]: " PARAMETER
           case $PARAMETER in
             [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
                  ;;
@@ -148,7 +148,7 @@ echo "**************************************************************************
                  ;;
             [8]) read -p "Enter new value for NTP server: " NTP_SERVER
                  ;;
-            [9]) if [ "$INSTALL_ELK" == false ]; then [ "$INSTALL_ELK" = true ]; else [ "$INSTALL_ELK" = false ];fi
+            [9]) if [ "$INSTALL_ELK" = false ]; then [ "$INSTALL_ELK" = true ] else [ "$INSTALL_ELK" = false ]
                  ;;                       
               *) echo "** Invalid input. Please choose an option [1-8]"
                  ;;
@@ -562,11 +562,10 @@ echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 #copy SSL certificate and key from bootstrap
 sudo mkdir -p /etc/pki/tls/certs
 sudo mkdir -p /etc/pki/tls/private
-sudo mkdir -p /etc/pki/tls/client
 curl -o /etc/pki/tls/certs/$ELK_CERT_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CERT_NAME 
 curl -o /etc/pki/tls/certs/$ELK_CA_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$CA_NAME
 curl -o /etc/pki/tls/private/$ELK_KEY_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$KEY_NAME 
-curl -o /etc/pki/tls/client/$ELK_PEM_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$PEM_NAME 
+curl -o /etc/pki/tls/certs/$ELK_PEM_NAME http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$PEM_NAME 
 
 #install filebeat
 curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-x86_64.rpm
@@ -586,7 +585,7 @@ tail_files: true
 
 #output.elasticsearch:
 # Array of hosts to connect to.
-#hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
+#hosts: ["ELK_HOSTNAME:ELK_PORT"]
 
 output.logstash:
   # The Logstash hosts
@@ -595,7 +594,7 @@ output.logstash:
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_PEM_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 
@@ -608,7 +607,7 @@ tail_files: true
 
 #output.elasticsearch:
 #  # Array of hosts to connect to.
-#  hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
+#  hosts: ["ELK_HOSTNAME:ELK_PORT"]
 
 output.logstash:
   # The Logstash hosts
@@ -617,7 +616,7 @@ output.logstash:
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_PEM_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
@@ -780,6 +779,7 @@ mkdir -p /etc/pki/tls/certs
 mkdir -p /etc/pki/tls/private
 sudo cp $WORKING_DIR/genconf/serve/$CA_NAME /etc/pki/tls/certs/$ELK_CA_NAME
 sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME /etc/pki/tls/certs/$ELK_CERT_NAME
+sudo cp $WORKING_DIR/genconf/serve/$PEM_NAME /etc/pki/tls/certs/$ELK_PEM_NAME
 sudo cp $WORKING_DIR/genconf/serve/$KEY_NAME /etc/pki/tls/private/$ELK_KEY_NAME
 
 #Add logstash config
@@ -791,7 +791,7 @@ input {
     port => 5044
     ssl => true
     ssl_certificate_authorities => ["/etc/pki/tls/certs/$ELK_CA_NAME"]
-    ssl_certificate => "/etc/pki/tls/certs/$ELK_CERT_NAME"
+    ssl_certificate => "/etc/pki/tls/certs/$ELK_PEM_NAME"
     ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
     ssl_verify_mode => "force_peer"
   }
