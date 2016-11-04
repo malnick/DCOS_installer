@@ -250,12 +250,17 @@ mkdir -p $WORKING_DIR/genconf/serve  #to hold the cert before the serve is gener
 #add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
 sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
 #cert config: swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
-sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g" /etc/pki/tls/openssl.cnf
+#sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]/\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g" /etc/pki/tls/openssl.cnf
+sudo sed -i -e "s/\[ v3_ca \]/\[ v3_ca \]\'$'\nsubjectAltName = IP: $BOOTSTRAP_IP/g" /etc/pki/tls/openssl.cnf
 #create the cert with the config
-openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:2048 \
- -keyout $WORKING_DIR/genconf/serve/$KEY_NAME -out $WORKING_DIR/genconf/serve/$CERT_NAME \
+#openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:4096 -sha256 \
+# -keyout $WORKING_DIR/genconf/serve/$KEY_NAME -out $WORKING_DIR/genconf/serve/$CERT_NAME \
+# -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
+openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch  -newkey rsa:4096 -nodes -sha256 -x509 -days 365\
+ -keyout $WORKING_DIR/genconf/serve/$KEY_NAME  -out $WORKING_DIR/genconf/serve/$CERT_NAME \
  -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
-openssl x509 -inform DER -outform PEM -in $WORKING_DIR/genconf/serve/$CERT_NAME -out $WORKING_DIR/genconf/serve/$PEM_NAME
+#openssl x509 -inform DER -outform PEM -in $WORKING_DIR/genconf/serve/$CERT_NAME -#out $WORKING_DIR/genconf/serve/$PEM_NAME
+sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME $WORKING_DIR/genconf/serve/$PEM_NAME
 sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME $WORKING_DIR/genconf/serve/$CA_NAME
 
 echo "** DEBUG: Certificate generated: "$(ls $WORKING_DIR/genconf/serve/domain*)
@@ -594,7 +599,7 @@ output.logstash:
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_PEM_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CRT_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 
@@ -616,7 +621,7 @@ output.logstash:
   # List of root certificates for HTTPS server verifications
   ssl.certificate_authorities:  ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
-  ssl.certificate: "/etc/pki/tls/certs/$ELK_PEM_NAME"
+  ssl.certificate: "/etc/pki/tls/certs/$ELK_CRT_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
@@ -791,7 +796,7 @@ input {
     port => 5044
     ssl => true
     ssl_certificate_authorities => ["/etc/pki/tls/certs/$ELK_CA_NAME"]
-    ssl_certificate => "/etc/pki/tls/certs/$ELK_PEM_NAME"
+    ssl_certificate => "/etc/pki/tls/certs/$ELK_CRT_NAME"
     ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
     ssl_verify_mode => "force_peer"
   }
