@@ -586,7 +586,7 @@ tail_files: true
 
 #output.elasticsearch:
 # Array of hosts to connect to.
-#hosts: ["ELK_HOSTNAME:ELK_PORT"]
+#hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
 
 output.logstash:
   # The Logstash hosts
@@ -608,7 +608,7 @@ tail_files: true
 
 #output.elasticsearch:
 #  # Array of hosts to connect to.
-#  hosts: ["ELK_HOSTNAME:ELK_PORT"]
+#  hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
 
 output.logstash:
   # The Logstash hosts
