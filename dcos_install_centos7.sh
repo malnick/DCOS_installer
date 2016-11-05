@@ -568,6 +568,7 @@ EOF2
 #####################################################################################
 if [ "$INSTALL_ELK" = true ]; then 
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
+
 echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 
 #copy SSL certificate and key from bootstrap
@@ -584,7 +585,6 @@ sudo rpm -vi filebeat-5.0.0-x86_64.rpm
 
 #configure filebeat
 echo "** Configuring Filebeat (aka. logstash-forwarder) ..."
-
 sudo mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.BAK
 sudo tee /etc/filebeat/filebeat.yml <<-EOF 
 filebeat.prospectors:
@@ -631,13 +631,10 @@ EOF
 
 EOF2
 
-
 sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #read the $ROLE variable inside the node, don't translate it while running this in the bootstrap
 if [[ $ROLE == "master" ]]; then
-
-EOF2 
-
+EOF2
 
 #back to variable substitution when running in bootstrap
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
