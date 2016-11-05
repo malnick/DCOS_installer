@@ -51,6 +51,8 @@ ELK_PORT=9200
 LOGSTASH_HOSTNAME=$BOOTSTRAP_IP
 LOGSTASH_PORT=5044
 FILEBEAT_JOURNALCTL_CONFIG=/etc/filebeat/filebeat_journald.yml
+FILEBEAT_LOG_PARSER_SCRIPT_MASTER=/usr/bin/dcos-filebeat-log-master.sh
+FILEBEAT_LOG_PARSER_SCRIPT_AGENT=/usr/bin/dcos-filebeat-log-agent.sh
 FILEBEAT_JOURNALCTL_SERVICE=dcos-journalctl-filebeat.service
 FILEBEAT_JOURNALCTL_MASTER_CONFIG=/etc/filebeat/filebeat_journald-master.yml
 FILEBEAT_JOURNALCTL_MASTER_SERVICE=dcos-journalctl-filebeat-master.service
@@ -582,7 +584,8 @@ curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-
 sudo rpm -vi filebeat-5.0.0-x86_64.rpm
 
 #configure filebeat
-#TODO: configure filebeat differently on masters and agents
+echo "** Configuring Filebeat (aka. logstash-forwarder) ..."
+
 sudo mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.BAK
 sudo tee /etc/filebeat/filebeat.yml <<-EOF 
 filebeat.prospectors:
@@ -594,43 +597,83 @@ filebeat.prospectors:
 tail_files: true
 #output.elasticsearch:
 # Array of hosts to connect to.
-#hosts: ["172.31.18.175:9200"]
+#hosts: ["$ELK_HOSTNAME:$ELK_PORT"]
 output.logstash:
   # The Logstash hosts
-  hosts: ["172.31.18.175:5044"]
+  hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
-  ssl.certificate_authorities: ["/etc/pki/tls/certs/ca.crt"]
+  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
   ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
-sudo systemctl start filebeat
-sudo chkconfig filebeat on
-echo "** Installed Filebeat (aka. logstash-forwarder) ... "
 
-#All nodes: service to continually parse journalctl and send to logstash anything with "dcos"
 echo "** Configuring Filebeat to parse DC/OS journalctl logs ..."
+
 sudo tee $FILEBEAT_JOURNALCTL_CONFIG<<-EOF 
 filebeat.prospectors:
 - input_type: stdin
   paths:
     - "-"
 tail_files: true
-
+output.logstash:
   # The Logstash hosts
-  hosts: ["172.31.18.175:5044"]
+  hosts: ["$LOGSTASH_HOSTNAME:$LOGSTASH_PORT"]
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
-  ssl.certificate_authorities: ["/etc/pki/tls/certs/ca.crt"]
+  ssl.certificate_authorities: ["/etc/pki/tls/certs/$ELK_CA_NAME"]
   # Certificate for SSL client authentication
   ssl.certificate: "/etc/pki/tls/certs/$ELK_CERT_NAME"
   # Client Certificate Key
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
 
-echo "** Creating service to parse DC/OS logs into Filebeat ..."
+EOF2
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
+#read the $ROLE variable inside the node, don't translate it while running this in the bootstrap
+if [[ $ROLE == "master" ]]; then
+EOF2 #back to variable substitution when running in bootstrap
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
+
+echo "** Creating DC/OS Master log parser script ..."
+sudo tee $FILEBEAT_LOG_PARSER_SCRIPT_MASTER<<-EOF 
+#!/bin/bash
+
+journalctl --since="now" -f             \
+  -u dcos-3dt.service                 \
+  -u dcos-logrotate-master.timer      \
+  -u dcos-adminrouter-reload.service  \
+  -u dcos-marathon.service            \
+  -u dcos-adminrouter-reload.timer    \
+  -u dcos-mesos-dns.service           \
+  -u dcos-adminrouter.service         \
+  -u dcos-mesos-master.service        \
+  -u dcos-cfn-signal.service          \
+  -u dcos-metronome.service           \
+  -u dcos-cosmos.service              \
+  -u dcos-minuteman.service           \
+  -u dcos-download.service            \
+  -u dcos-navstar.service             \
+  -u dcos-epmd.service                \
+  -u dcos-oauth.service               \
+  -u dcos-exhibitor.service           \
+  -u dcos-setup.service               \
+  -u dcos-gen-resolvconf.service      \
+  -u dcos-signal.service              \
+  -u dcos-gen-resolvconf.timer        \
+  -u dcos-signal.timer                \
+  -u dcos-history.service             \
+  -u dcos-spartan-watchdog.service    \
+  -u dcos-link-env.service            \
+  -u dcos-spartan-watchdog.timer      \
+  -u dcos-logrotate-master.service    \
+  -u dcos-spartan.service             \
+| filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
+EOF
+
+echo "** Creating service to parse DC/OS Master logs into Filebeat ..."
 sudo tee /etc/systemd/system/multi-user.target.wants/$FILEBEAT_JOURNALCTL_SERVICE<<-EOF 
 [Unit]
 Description=DCOS journalctl parser to filebeat
@@ -640,18 +683,70 @@ After=filebeat.service
 [Service]
 Restart=always
 RestartSec=5
-ExecStart=journalctl -fl | grep dcos | filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
+ExecStart=$FILEBEAT_LOG_PARSER_SCRIPT_MASTER
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
+else #if not master
+
+echo "** Creating DC/OS Agent log parser script ..."
+sudo tee $FILEBEAT_LOG_PARSER_SCRIPT_AGENT<<-EOF 
+#!/bin/bash
+
+journalctl --since="now" -f                  \
+  -u dcos-3dt.service                      \
+  -u dcos-logrotate-agent.timer            \
+  -u dcos-3dt.socket                       \
+  -u dcos-mesos-slave.service              \
+  -u dcos-adminrouter-agent.service        \
+  -u dcos-minuteman.service                \
+  -u dcos-adminrouter-reload.service       \
+  -u dcos-navstar.service                  \
+  -u dcos-adminrouter-reload.timer         \
+  -u dcos-rexray.service                   \
+  -u dcos-cfn-signal.service               \
+  -u dcos-setup.service                    \
+  -u dcos-download.service                 \ 
+  -u dcos-signal.timer                     \
+  -u dcos-epmd.service                     \
+  -u dcos-spartan-watchdog.service         \
+  -u dcos-gen-resolvconf.service           \
+  -u dcos-spartan-watchdog.timer           \
+  -u dcos-gen-resolvconf.timer             \
+  -u dcos-spartan.service                  \
+  -u dcos-link-env.service                 \
+  -u dcos-vol-discovery-priv-agent.service \
+  -u dcos-logrotate-agent.service          \
+| filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
+EOF
+
+echo "** Creating service to parse DC/OS Agent logs into Filebeat ..."
+sudo tee /etc/systemd/system/multi-user.target.wants/$FILEBEAT_JOURNALCTL_SERVICE<<-EOF 
+[Unit]
+Description=DCOS journalctl parser to filebeat
+Wants=filebeat.service
+After=filebeat.service
+
+[Service]
+Restart=always
+RestartSec=5
+ExecStart=$FILEBEAT_LOG_PARSER_SCRIPT_AGENT
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+fi #if role=MASTER
+
+echo "** Installed Filebeat (aka. logstash-forwarder) ... "
+
 sudo systemctl daemon-reload
 sudo systemctl start $FILEBEAT_JOURNALCTL_SERVICE
-sudo systemctl enable $FILEBEAT_JOURNALCTL_SERVICE
-#TODO: do granular and precise logging based on different journalctl -flu [SERVICE] commands
-#TODO: differentiate logs for MASTER and AGENTS
-
+sudo chkconfig $FILEBEAT_JOURNALCTL_SERVICE on
+sudo systemctl start filebeat
+sudo chkconfig filebeat on
 
 EOF2
 fi #if INSTALL_ELK=true
