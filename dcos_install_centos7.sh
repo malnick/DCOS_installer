@@ -630,12 +630,12 @@ output.logstash:
 EOF
 
 EOF3
-sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF3'
+sudo tee $WORKING_DIR/genconf/serve/$NODE_INSTALLER <<-'EOF3'
 #read the $ROLE variable inside the node, don't translate it while running this in the bootstrap
 if [[ $ROLE == "master" ]]; then
 EOF3 
 #back to variable substitution when running in bootstrap
-sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF3
+sudo tee $WORKING_DIR/genconf/serve/$NODE_INSTALLER <<-EOF3
 
 echo "** Creating DC/OS Master log parser script ..."
 sudo tee $FILEBEAT_LOG_PARSER_SCRIPT_MASTER<<-EOF 
