@@ -567,7 +567,7 @@ EOF2
 #Install filebeat (aka. logstash_forwarder) if Install_ELK = true.
 #####################################################################################
 if [ "$INSTALL_ELK" = true ]; then 
-sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF3
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 echo "** Installing Filebeat (aka. logstash-forwarder) ... "
 
 #copy SSL certificate and key from bootstrap
@@ -629,13 +629,18 @@ output.logstash:
   ssl.key: "/etc/pki/tls/private/$ELK_KEY_NAME"
 EOF
 
-EOF3
-sudo tee $WORKING_DIR/genconf/serve/$NODE_INSTALLER <<-'EOF3'
+EOF2
+
+
+sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #read the $ROLE variable inside the node, don't translate it while running this in the bootstrap
 if [[ $ROLE == "master" ]]; then
-EOF3 
+
+EOF2 
+
+
 #back to variable substitution when running in bootstrap
-sudo tee $WORKING_DIR/genconf/serve/$NODE_INSTALLER <<-EOF3
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 
 echo "** Creating DC/OS Master log parser script ..."
 sudo tee $FILEBEAT_LOG_PARSER_SCRIPT_MASTER<<-EOF 
@@ -749,7 +754,7 @@ sudo chkconfig $FILEBEAT_JOURNALCTL_SERVICE on
 sudo systemctl start filebeat
 sudo chkconfig filebeat on
 
-EOF3
+EOF2
 fi 
 #if INSTALL_ELK=true
 
