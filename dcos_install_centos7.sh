@@ -920,7 +920,7 @@ input {
     port => 5044
     ssl => true
     ssl_certificate_authorities => ["/etc/pki/tls/certs/$ELK_CA_NAME"]
-    ssl_certificate => "/etc/pki/tls/certs/$ELK_CRT_NAME"
+    ssl_certificate => "/etc/pki/tls/certs/$ELK_CERT_NAME"
     ssl_key => "/etc/pki/tls/private/$ELK_KEY_NAME"
     ssl_verify_mode => "force_peer"
   }
