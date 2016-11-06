@@ -672,7 +672,7 @@ journalctl --since="now" -f             \
   -u dcos-spartan-watchdog.timer      \
   -u dcos-logrotate-master.service    \
   -u dcos-spartan.service             \
-| filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
+| /usr/share/filebeat/bin/filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
 EOF
 
 echo "** Creating service to parse DC/OS Master logs into Filebeat ..."
@@ -721,7 +721,7 @@ journalctl --since="now" -f                  \
   -u dcos-link-env.service                 \
   -u dcos-vol-discovery-priv-agent.service \
   -u dcos-logrotate-agent.service          \
-| filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
+| /usr/share/filebeat/bin/filebeat -e -v -c $FILEBEAT_JOURNALCTL_CONFIG
 EOF
 
 echo "** Creating service to parse DC/OS Agent logs into Filebeat ..."
