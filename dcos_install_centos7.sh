@@ -690,7 +690,7 @@ ExecStart=$FILEBEAT_LOG_PARSER_SCRIPT_MASTER
 [Install]
 WantedBy=multi-user.target
 EOF
-
+sudo chmod 0644 /etc/systemd/system/multi-user.target.wants/$FILEBEAT_JOURNALCTL_SERVICE
 else #if not master
 
 echo "** Creating DC/OS Agent log parser script ..."
@@ -739,7 +739,7 @@ ExecStart=$FILEBEAT_LOG_PARSER_SCRIPT_AGENT
 [Install]
 WantedBy=multi-user.target
 EOF
-
+sudo chmod 0644 sudo tee /etc/systemd/system/multi-user.target.wants/$FILEBEAT_JOURNALCTL_SERVICE
 fi 
 #if role=MASTER
 
