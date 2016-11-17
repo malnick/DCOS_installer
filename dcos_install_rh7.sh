@@ -159,7 +159,7 @@ systemctl stop firewalld &&  systemctl disable firewalld
 sudo cat > /etc/yum.repos.d/docker.repo << 'EOF'
 [dockerrepo]
 name=Docker Repository
-baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
 enabled=1
 gpgcheck=1
 gpgkey=https://yum.dockerproject.org/gpg
@@ -469,15 +469,27 @@ sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 sudo tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
 name=Docker Repository
-baseurl=https://yum.dockerproject.org/repo/main/centos/$releasever/
+baseurl=https://yum.dockerproject.org/repo/main/centos/7/
 enabled=1
 gpgcheck=1
 gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #install docker engine, daemon and service, along with dependencies
+yum install -y \
+ftp://fr2.rpmfind.net/linux/centos/7.2.1511/os/x86_64/Packages/libtool-ltdl-2.4.2-20.el7.x86_64.rpm \
+ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/ipset-libs-6.19-4.el7.x86_64.rpm \
+ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/ipset-6.19-4.el7.x86_64.rpm \
+ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/zip-3.0-10.el7.x86_64.rpm \
+ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/unzip-6.0-15.el7.x86_64.rpm \
+ftp://rpmfind.net/linux/centos/7.2.1511/os/x86_64/Packages/autogen-libopts-5.18-5.el7.x86_64.rpm \
+ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/ntpdate-4.2.6p5-22.el7.centos.x86_64.rpm \
+ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/ntp-4.2.6p5-22.el7.centos.x86_64.rpm \
+ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/wget-1.14-10.el7_0.1.x86_64.rpm
+
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
- wget tar xz curl zip unzip ipset ntp 
+tar xz curl 
+ #zip unzip ipset ntp wget -- installed above with rpm
 
 #configure ntp
 sudo echo "server pool.ntp.org" > /etc/ntp.conf && \
