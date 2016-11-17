@@ -1,8 +1,6 @@
 #!/bin/bash
 #
 # DC/OS bootstrap node installer script for RHEL 7
-# Author: Brian Cornally (bcornally at objectsharp.com)
-# Largely adapted from:
 # https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh
 # Author: Fernando Sanchez (fernando at mesosphere.com)
 #
