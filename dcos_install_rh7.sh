@@ -24,6 +24,7 @@ NTP_SERVER="pool.ntp.org"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true 
 INSTALL_ELK=false
+DNS_SERVER="8.8.8.8"
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -117,6 +118,7 @@ echo "6) TCP port for bootstrap server:      "$BOOTSTRAP_PORT
 echo "7) Installation directory:             "$WORKING_DIR
 echo "8) NTP server:                         "$NTP_SERVER
 echo "9) Install ELK:                        "$INSTALL_ELK
+echo "0) DNS server:                         "$DNS_SERVER
 echo ""
 echo "******************************************************************************"
 
@@ -149,6 +151,8 @@ while true; do
             [8]) read -p "Enter new value for NTP server: " NTP_SERVER
                  ;;
             [9]) if [ "$INSTALL_ELK" = "false" ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
+                 ;;
+            [0]) read -p "Enter new value for DNS server: " DNS_SERVER
                  ;;                    
               *) echo "** Invalid input. Please choose an option [1-8]"
                  ;;
@@ -328,8 +332,7 @@ $([[ $MASTER_2 != "" ]] && echo "
 $([[ $MASTER_3 != "" ]] && echo "
 - $MASTER_3")
 resolvers:
-- 8.8.4.4
-- 8.8.8.8
+- $DNS_SERVER
 dcos_overlay_network:
   vtep_subnet: 192.15.0.0/20
   vtep_mac_oui: 70:B3:D5:00:00:00
