@@ -21,10 +21,10 @@ BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
 BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
+DNS_SERVER="8.8.8.8"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true 
 INSTALL_ELK=false
-DNS_SERVER="8.8.8.8"
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -117,8 +117,8 @@ echo "5) IP for this bootstrap server:       "$BOOTSTRAP_IP
 echo "6) TCP port for bootstrap server:      "$BOOTSTRAP_PORT
 echo "7) Installation directory:             "$WORKING_DIR
 echo "8) NTP server:                         "$NTP_SERVER
-echo "9) Install ELK:                        "$INSTALL_ELK
-echo "0) DNS server:                         "$DNS_SERVER
+echo "9) DNS server:                         "$DNS_SERVER
+echo "0) Install ELK:                        "$INSTALL_ELK
 echo ""
 echo "******************************************************************************"
 
@@ -150,10 +150,10 @@ while true; do
                  ;;
             [8]) read -p "Enter new value for NTP server: " NTP_SERVER
                  ;;
-            [9]) if [ "$INSTALL_ELK" = "false" ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
+            [9]) read -p "Enter new value for DNS server: " DNS_SERVER
+                 ;;  
+            [0]) if [ "$INSTALL_ELK" = "false" ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;
-            [0]) read -p "Enter new value for DNS server: " DNS_SERVER
-                 ;;                    
               *) echo "** Invalid input. Please choose an option [1-8]"
                  ;;
           esac
