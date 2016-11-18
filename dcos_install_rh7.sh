@@ -23,7 +23,7 @@ WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true 
-INSTALL_ELK=true
+INSTALL_ELK=false
 
 #****************************************************************
 # These are for internal use and should not need modification
