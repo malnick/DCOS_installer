@@ -106,7 +106,6 @@ fi
 
 while true; do
 
-echo ""
 echo "** Will now install a DC/OS bootstrap node with the following parameters:"
 echo ""
 echo "*****************************          ****************"
