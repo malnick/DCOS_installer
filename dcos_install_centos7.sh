@@ -155,7 +155,7 @@ echo "**************************************************************************
                  ;;  
             [0]) if [ "$INSTALL_ELK" = false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;
-              *) echo "** Invalid input. Please choose an option [1-8]"
+              *) echo "** Invalid input. Please choose an option [1-0]"
                  ;;
           esac
           ;;
