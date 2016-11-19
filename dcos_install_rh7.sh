@@ -71,7 +71,7 @@ fi
 if [ $(grep "ID=" /etc/os-release | head -n1) != "ID=\"rhel\"" ] || \
    [ $(grep "ID=" /etc/os-release | tail -n1) != "VERSION_ID=\"7.2\"" ] || \
    [ $(grep "ID=" /etc/os-release | tail -n1) != "VERSION_ID=\"7.3\"" ]; then
-  echo "** This installer supports RHEL 7.2 only. Aborting"
+  echo "** This installer supports RHEL 7.2 and 7.3 only. Aborting"
   exit
 else
   echo "** Operating system version check passed."
