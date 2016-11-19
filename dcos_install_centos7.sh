@@ -16,8 +16,6 @@ DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh
 CLI_DOWNLOAD_URL="https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos"
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
 CLUSTERNAME="DC/OS @ "$(hostname)
-BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
- '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #this node's eth0
 BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
@@ -29,6 +27,9 @@ INSTALL_ELK=false
 #****************************************************************
 # These are for internal use and should not need modification
 #****************************************************************
+INTERFACE=$(ip route get 8.8.8.8| awk -F ' ' '{print $5}')   #name of the default route interface
+BOOTSTRAP_IP=$(ip addr show $INTERFACE | grep -Eo \
+ '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #this node's eth0
 SERVICE_NAME=dcos-bootstrap
 INSTALLER_FILE=$(basename $DOWNLOAD_URL)
 PASSWORD_HASH_FILE=$WORKING_DIR/.pshash
