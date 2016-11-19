@@ -105,7 +105,6 @@ else
   MASTER_IP=`cat $MASTER_IP_FILE`
 fi
 
-echo ""
 echo "** Will now install a DC/OS bootstrap node with the following parameters:"
 echo ""
 echo "*****************************          ****************"
