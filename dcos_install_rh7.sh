@@ -403,9 +403,6 @@ sudo cat > $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #!/bin/bash
 #
 # DC/OS Installer script for cluster nodes
-# Author: Brian Cornally (bcornally at objectsharp.com)
-# Largely adapted from:
-# https://raw.githubusercontent.com/fernandosanchezmunoz/DCOS_installer/master/dcos_install_centos7.sh
 # Author: Fernando Sanchez (fernando at mesosphere.com)
 #
 
