@@ -105,7 +105,9 @@ else
   MASTER_IP=`cat $MASTER_IP_FILE`
 fi
 
-echo ""
+
+while true; do
+
 echo "** Will now install a DC/OS bootstrap node with the following parameters:"
 echo ""
 echo "*****************************          ****************"
@@ -123,7 +125,6 @@ echo "0) Install ELK:                        "$INSTALL_ELK
 echo ""
 echo "******************************************************************************"
 
-while true; do
   read -p "** Are these parameters correct?: (y/n): " REPLY
   case $REPLY in
     [yY]) echo ""
