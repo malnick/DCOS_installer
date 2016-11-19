@@ -153,7 +153,7 @@ echo "**************************************************************************
                  ;;
             [9]) read -p "Enter new value for DNS server: " DNS_SERVER
                  ;;  
-            [0]) if [ "$INSTALL_ELK" = false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
+            [0]) if [ "$INSTALL_ELK" == false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;
               *) echo "** Invalid input. Please choose an option [1-0]"
                  ;;
