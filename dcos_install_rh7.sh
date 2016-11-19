@@ -498,9 +498,7 @@ echo "** Installing dependencies..."
 #Docker with overlayfs
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
-EOF2
 
-sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 # remove existing repo
 /bin/rm -f /etc/yum.repos.d/*
 
@@ -530,11 +528,9 @@ ftp://rpmfind.net/linux/centos/6.8/os/x86_64/Packages/nc-1.84-24.el6.x86_64.rpm
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
 tar xz curl screen
  #zip unzip ipset ntp wget -- installed above with rpm
-
-
-
-#configure ntp
-sudo echo "server pool.ntp.org" > /etc/ntp.conf && \
+ 
+#configure ntp"server $NTP_SERVER" 
+sudo echo "server $NTP_SERVER"  > /etc/ntp.conf && \
 sudo systemctl start ntpd && \
 sudo systemctl enable ntpd
 
@@ -556,6 +552,10 @@ sudo modprobe overlay && \
 sudo systemctl daemon-reload && \
 sudo systemctl start docker && \
 sudo systemctl enable docker
+
+EOF2
+
+sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
 #Ask for manual intervention if required for docker storage driver change to overlay.
 #####################################################################################
