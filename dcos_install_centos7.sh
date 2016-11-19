@@ -22,7 +22,7 @@ NTP_SERVER="pool.ntp.org"
 DNS_SERVER="8.8.8.8"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true
-INSTALL_ELK=false
+INSTALL_ELK="false"
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -133,7 +133,7 @@ echo "**************************************************************************
           echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
-    [nN]) read -p "** Enter number of parameter to modify [1-8]: " PARAMETER
+    [nN]) read -p "** Enter number of parameter to modify [1-0]: " PARAMETER
           case $PARAMETER in
             [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
                  ;;
