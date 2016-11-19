@@ -21,8 +21,10 @@ BOOTSTRAP_IP=$(ip addr show eth0 | grep -Eo \
 BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
+DNS_SERVER="8.8.8.8"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
-TELEMETRY=true 
+TELEMETRY=true
+INSTALL_ELK=false
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -36,6 +38,20 @@ TEST_FILE=$WORKING_DIR/genconf/serve/dcos_install.sh
 MASTER_IP_FILE=$WORKING_DIR/.masterip
 UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
 NGINX_NAME=dcos_int_nginx
+CERT_NAME=domain.crt
+KEY_NAME=domain.key
+PEM_NAME=domain.pem
+CA_NAME=ca.crt
+#ELK stack for logging
+ELK_CERT_NAME=logstash-forwarder.crt
+ELK_KEY_NAME=logstash-forwarder.key
+ELK_PEM_NAME=logstash-forwarder.pem
+ELK_CA_NAME=ca.crt
+ELK_HOSTNAME=$BOOTSTRAP_IP
+ELK_PORT=9200
+FILEBEAT_JOURNALCTL_CONFIG="/etc/filebeat/filebeat_journald.yml"
+FILEBEAT_JOURNALCTL_SERVICE=dcos-journalctl-filebeat.service
+
 #pretty colours
 RED='\033[0;31m'
 BLUE='\033[1;34m'
@@ -102,6 +118,8 @@ echo "5) IP for this bootstrap server:       "$BOOTSTRAP_IP
 echo "6) TCP port for bootstrap server:      "$BOOTSTRAP_PORT
 echo "7) Installation directory:             "$WORKING_DIR
 echo "8) NTP server:                         "$NTP_SERVER
+echo "9) DNS server:                         "$DNS_SERVER
+echo "0) Install ELK:                        "$INSTALL_ELK
 echo ""
 echo "******************************************************************************"
 
@@ -131,7 +149,11 @@ echo "**************************************************************************
             [7]) read -p "Enter new value for Installation Directory: " WORKING_DIR
                  ;;
             [8]) read -p "Enter new value for NTP server: " NTP_SERVER
-                 ;;                 
+                 ;;
+            [9]) read -p "Enter new value for DNS server: " DNS_SERVER
+                 ;;  
+            [0]) if [ "$INSTALL_ELK" = "false" ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
+                 ;;
               *) echo "** Invalid input. Please choose an option [1-8]"
                  ;;
           esac
@@ -162,7 +184,7 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #docker engine with selinux and other requirements
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp 
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp screen 
 
 #configure ntp
 sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \
@@ -223,6 +245,27 @@ PATH=/usr/sbin:/usr/bin:$PATH
 echo $(ip addr show eth0 | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
 EOF
 fi
+
+#Generate certificate for docker registry, ELK and others
+#################################################################
+echo "** Generating a certificate for this domain..."
+
+mkdir -p $WORKING_DIR/genconf/serve  #to hold the cert before the serve is generated
+#add your ELK Server's private IP address to the subjectAltName (SAN) field of the SSL certificate that we are about to generate
+sudo cp /etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf.BAK
+#cert config: swap out [ v3_ca ] with [ v3_ca ]/nsubjectAltName = IP: $BOOTSTRAP_IP
+#sudo sed -i -e  "s/\[ v3_ca \]/\[ v3_ca \]/\\\nsubjectAltName = IP: $BOOTSTRAP_IP/g" /etc/pki/tls/openssl.cnf
+sudo sed -i -e "s/\[ v3_ca \]/\[ v3_ca \]\'$'\nsubjectAltName = IP: $BOOTSTRAP_IP/g" /etc/pki/tls/openssl.cnf
+#create the cert with the config
+#openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch -newkey rsa:4096 -sha256 \
+# -keyout $WORKING_DIR/genconf/serve/$KEY_NAME -out $WORKING_DIR/genconf/serve/$CERT_NAME \
+# -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
+openssl req -nodes -config /etc/pki/tls/openssl.cnf -batch  -newkey rsa:4096 -nodes -sha256 -x509 -days 365\
+ -keyout $WORKING_DIR/genconf/serve/$KEY_NAME  -out $WORKING_DIR/genconf/serve/$CERT_NAME \
+ -subj "/C=US/ST=NY/L=NYC/O=Mesosphere/OU=SE/CN=registry.marathon.l4lb.thisdcos.directory"
+#openssl x509 -inform DER -outform PEM -in $WORKING_DIR/genconf/serve/$CERT_NAME -#out $WORKING_DIR/genconf/serve/$PEM_NAME
+sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME $WORKING_DIR/genconf/serve/$PEM_NAME
+sudo cp $WORKING_DIR/genconf/serve/$CERT_NAME $WORKING_DIR/genconf/serve/$CA_NAME
 
 #Installer
 #################################################################
@@ -285,8 +328,7 @@ $([[ $MASTER_2 != "" ]] && echo "
 $([[ $MASTER_3 != "" ]] && echo "
 - $MASTER_3")
 resolvers:
-- 8.8.4.4
-- 8.8.8.8
+- $DNS_SERVER
 dcos_overlay_network:
   vtep_subnet: 192.15.0.0/20
   vtep_mac_oui: 70:B3:D5:00:00:00
@@ -448,9 +490,7 @@ echo "** Installing dependencies..."
 #Docker with overlayfs
 echo 'overlay'\
 >> /etc/modules-load.d/overlay.conf
-EOF2
 
-sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #add docker repo
 sudo tee /etc/yum.repos.d/docker.repo <<-'EOF'
 [dockerrepo]
@@ -463,12 +503,7 @@ EOF
 
 #install docker engine, daemon and service, along with dependencies
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
- wget tar xz curl zip unzip ipset ntp 
-
-#configure ntp
-sudo echo "server pool.ntp.org" > /etc/ntp.conf && \
-sudo systemctl start ntpd && \
-sudo systemctl enable ntpd
+ wget tar xz curl zip unzip ipset ntp nc screen
 
 #add overlay storage driver
 echo 'overlay'\
@@ -488,6 +523,10 @@ sudo modprobe overlay && \
 sudo systemctl daemon-reload && \
 sudo systemctl start docker && \
 sudo systemctl enable docker
+
+EOF2
+
+sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
 #Ask for manual intervention if required for docker storage driver change to overlay.
 #####################################################################################
