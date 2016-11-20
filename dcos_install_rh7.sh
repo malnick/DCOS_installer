@@ -23,6 +23,7 @@ DNS_SERVER="8.8.8.8"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true 
 INSTALL_ELK=false
+#CUSTOMER_KEY="customer_key: <insert customer key here and uncomment this line>
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -354,6 +355,7 @@ dcos_overlay_network:
      prefix: 24
 superuser_password_hash: $PASSWORD_HASH
 superuser_username: $USERNAME
+$CUSTOMER_KEY
 EOF
 
 #Run local NGINX server and add it as service to startup
