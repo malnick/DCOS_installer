@@ -531,7 +531,7 @@ sudo cat >> $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 #Ask for manual intervention if required for docker storage driver change to overlay.
 #####################################################################################
 if [[ $(docker info | grep "Storage Driver:" | cut -d " " -f 3) != "overlay" ]]; then
-  echo "** ${RED}ERROR${NC}: Docker overlay driver couldn't be started automatically."
+  echo -e "** ${RED}ERROR${NC}: Docker overlay driver couldn't be started automatically."
   echo -e "${BLUE}** Please copy and paste manually the command below and run this installer again."
   echo -e "${RED}systemctl stop docker && systemctl daemon-reload${NC}"
   read -p "** Press Enter to exit..."
