@@ -21,7 +21,6 @@ BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
 DNS_SERVER="8.8.8.8"
-REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true 
 INSTALL_ELK=false
 
@@ -31,6 +30,7 @@ INSTALL_ELK=false
 INTERFACE=$(ip route get 8.8.8.8| awk -F ' ' '{print $5}')   #name of the default route interface
 BOOTSTRAP_IP=$(ip addr show $INTERFACE | grep -Eo \
  '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1) #this node's eth0
+REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 SERVICE_NAME=dcos-bootstrap
 BOOTSTRAP_FILE=$SERVICE_NAME.sh
 INSTALLER_FILE=$(basename $DOWNLOAD_URL)
