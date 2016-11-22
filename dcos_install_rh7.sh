@@ -195,6 +195,11 @@ wget curl zip unzip ipset ntp screen git python-pip python34 jq nginx
 curl https://bootstrap.pypa.io/get-pip.py | python3.4
 pip3 install --upgrade pip jsonschema
 
+#jq
+wget http://stedolan.github.io/jq/download/linux64/jq
+chmod +x ./jq
+cp jq /usr/bin
+
 #configure ntp
 sudo echo "server $NTP_SERVER" > /etc/ntp.conf && \
 sudo systemctl start ntpd && \
