@@ -124,14 +124,15 @@ echo "**************************************************************************
 
   read -p "** Are these parameters correct?: (y/n): " REPLY
   case $REPLY in
-    [yY]) echo ""
+    [yY]) mkdir -p $WORKING_DIR
+          echo ""
           echo "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER" \
            > $WORKING_DIR/$COMMAND_FILE  #for future use (node additions)
           echo ""
           echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
-    [nN]) read -p "** Enter number of parameter to modify [1-0]: " PARAMETER
+    [nN]) read -p "** Enter number of parameter to modify [1-8]: " PARAMETER
           case $PARAMETER in
             [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
                  ;;
@@ -149,7 +150,7 @@ echo "**************************************************************************
                  ;;  
             [8]) if [ "$INSTALL_ELK" == false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;
-              *) echo "** Invalid input. Please choose an option [1-0]"
+              *) echo "** Invalid input. Please choose an option [1-8]"
                  ;;
           esac
           ;;
