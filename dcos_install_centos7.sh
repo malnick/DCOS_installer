@@ -21,7 +21,6 @@ BOOTSTRAP_PORT=81                                          #any free/open port
 WORKING_DIR=$HOME"/DCOS_install"
 NTP_SERVER="pool.ntp.org"
 DNS_SERVER="8.8.8.8"
-REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true
 INSTALL_ELK=false
 
@@ -41,6 +40,7 @@ TEST_FILE=$WORKING_DIR/genconf/serve/dcos_install.sh
 MASTER_IP_FILE=$WORKING_DIR/.masterip
 UNPACKED_INSTALLER_FILE=$WORKING_DIR/"dcos-genconf.*.tar"
 NGINX_NAME=dcos_int_nginx
+REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 CERT_NAME=domain.crt
 KEY_NAME=domain.key
 PEM_NAME=domain.pem
