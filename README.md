@@ -3,7 +3,7 @@
 This is a script to install DC/OS on baremetal nodes or VM instances. It downloads all dependencies, checks for configuration parameters, autogenerates all required configuration files and finally completes the *`bootstrap`* node installation.
 It also generates another script to be ran (copied and pasted) in all other nodes in the cluster (*`master`*/*`slave`*/*`public_slave`*). This downloads all dependencies and completes the node installation automatically.
 
-Installation should only require running a single command in the *`bootstrap`* node, and copying & pasting the resulting command in each additional node of the cluster. This copy&paste command can optionally include as a parameter the `ROLE` (*`master`*/*`slave`*/*`public_slave`*) that the node in particular will have. If the parameter is not passed, the script will ask for the `ROLE` interactively.
+Installation is performed running a single command in the *`bootstrap`* node, and copying & pasting the resulting command in each additional node of the cluster. This copy&paste command can optionally include as a parameter the `ROLE` (*`master`*/*`slave`*/*`public_slave`*) that the node in particular will have. If the parameter is not passed, the script will ask for the `ROLE` interactively.
 
 This installer is a simplified and scripted version of the **[official DC/OS Advanced Installation process](https://docs.mesosphere.com/1.8/administration/installing/custom/advanced/)**. Before using this script, you should make sure to be familiar with that installation method. This includes understanding the roles of each node type, including the *`bootstrap`* node, the *`master`* node(s), the (private) *`slave`* node(s), and the *`public_slave`* node(s).
 
