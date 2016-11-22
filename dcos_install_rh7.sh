@@ -23,7 +23,7 @@ DNS_SERVER="8.8.8.8"
 REXRAY_CONFIG_FILE="rexray.yaml"  #relative to /genconf. Currently only Amazon EBS supported
 TELEMETRY=true 
 INSTALL_ELK=false
-#CUSTOMER_KEY="customer_key: <insert customer key here and uncomment this line>
+#CUSTOMER_KEY="customer_key: <insert customer key here and uncomment this line>"
 
 #****************************************************************
 # These are for internal use and should not need modification
