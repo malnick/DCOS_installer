@@ -931,7 +931,7 @@ if [ -f $TEST_FILE ]; then
   echo -e "${RED}curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC} [ROLE]"
   echo -e ""
   if [ "$INSTALL_ELK" == true ]; then
-   echo -e "** Kibana is available at: "$BOOTSTRAP_IP":5601"
+   echo -e "** Kibana is available at http://"$BOOTSTRAP_IP":5601"
   fi
   exit 1
 else
