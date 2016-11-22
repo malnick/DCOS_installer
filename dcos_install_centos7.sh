@@ -24,7 +24,6 @@ DNS_SERVER="8.8.8.8"
 TELEMETRY=true
 INSTALL_ELK=false
 
-
 #****************************************************************
 # These are for internal use and should not need modification
 #****************************************************************
