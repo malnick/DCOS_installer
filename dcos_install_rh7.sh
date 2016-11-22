@@ -127,7 +127,8 @@ echo "**************************************************************************
 
   read -p "** Are these parameters correct?: (y/n): " REPLY
   case $REPLY in
-    [yY]) echo ""
+    [yY]) mkdir -p $WORKING_DIR
+          echo ""
           echo "curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER" \
            > $WORKING_DIR/$COMMAND_FILE  #for future use (node additions)
           echo ""
