@@ -752,6 +752,11 @@ curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
  dcos config set core.dcos_url https://$MASTER_1 &&
  dcos config set core.ssl_verify false &&
  dcos
+ 
+ #Insert Mesos-DNS as resolver in bootstrap node to access *.mesos
+ #################################################################
+ cp /etc/resolv.conf /etc/resolv.conf.dcos #backup
+ echo "nameserver $MASTER_1" | cat - /etc/resolv.conf > temp && mv temp /etc/resolv.conf
 
 #Provide a first command to copy&paste so that the nodes can be installed in parallel to ELK on Bootstrap
 #########################################################################################################
