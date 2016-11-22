@@ -44,7 +44,7 @@ Edit the installation file as required (e.g. modify download link) and then:
 bash dcos_install_centos7.sh
 ```
 
-The script will provide a command during the installation process pointing to the node installer script in the bootstrap node, to be copied & pasted in the cluster nodes for installation. The format will be:
+The script will provide a command during the installation process pointing to the node installer script in the bootstrap node, to be copied & pasted in the cluster nodes with the following format:
 
 ```curl -O http://BOOTSTRAP_NODE_IP:PORT/node_installer.sh && sudo bash node_installer.sh [ROLE]```
 
