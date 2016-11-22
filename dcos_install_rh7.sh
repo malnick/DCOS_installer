@@ -117,13 +117,11 @@ echo "1) Master node private IP(s):          "$MASTER_IP
 echo "*****************************          ****************"
 echo "2) DC/OS username:                     "$USERNAME
 echo "3) DC/OS Password:                     "$PASSWORD
-echo "4) Generated Cluster Name:             "$CLUSTERNAME
-echo "5) IP for this bootstrap server:       "$BOOTSTRAP_IP
-echo "6) TCP port for bootstrap server:      "$BOOTSTRAP_PORT
-echo "7) Installation directory:             "$WORKING_DIR
-echo "8) NTP server:                         "$NTP_SERVER
-echo "9) DNS server:                         "$DNS_SERVER
-echo "0) Install ELK:                        "$INSTALL_ELK
+echo "4) Cluster Name:                       "$CLUSTERNAME
+echo "5) Installation directory:             "$WORKING_DIR
+echo "6) NTP server:                         "$NTP_SERVER
+echo "7) DNS server:                         "$DNS_SERVER
+echo "8) Install ELK:                        "$INSTALL_ELK
 echo ""
 echo "******************************************************************************"
 
@@ -144,19 +142,15 @@ echo "**************************************************************************
                  ;;
             [3]) read -p "Enter new value for DC/OS password: " PASSWORD
                  ;;
-            [4]) read -p "Enter new value for Generated Cluster Name: " CLUSTERNAME
+            [4]) read -p "Enter new value for Cluster Name: " CLUSTERNAME
                  ;;
-            [5]) read -p "Enter new value for IP for this bootstrap server: " BOOTSTRAP_IP
+            [5]) read -p "Enter new value for Installation Directory: " WORKING_DIR
                  ;;
-            [6]) read -p "Enter new value for TCP port for this bootstrap server: " BOOTSTRAP_PORT
+            [6]) read -p "Enter new value for NTP server: " NTP_SERVER
                  ;;
-            [7]) read -p "Enter new value for Installation Directory: " WORKING_DIR
-                 ;;
-            [8]) read -p "Enter new value for NTP server: " NTP_SERVER
-                 ;;
-            [9]) read -p "Enter new value for DNS server: " DNS_SERVER
+            [7]) read -p "Enter new value for DNS server: " DNS_SERVER
                  ;;  
-            [0]) if [ "$INSTALL_ELK" == false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
+            [8]) if [ "$INSTALL_ELK" == false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;
               *) echo "** Invalid input. Please choose an option [1-0]"
                  ;;
