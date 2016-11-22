@@ -121,7 +121,7 @@ echo "4) Cluster Name:                       "$CLUSTERNAME
 echo "5) Installation directory:             "$WORKING_DIR
 echo "6) NTP server:                         "$NTP_SERVER
 echo "7) DNS server:                         "$DNS_SERVER
-echo "8) Install ELK:                        "$INSTALL_ELK
+echo "8) Install ELK on bootstrap node:      "$INSTALL_ELK
 echo ""
 echo "******************************************************************************"
 
@@ -925,6 +925,9 @@ if [ -f $TEST_FILE ]; then
   echo -e "${RED}sudo su -" 
   echo -e "${RED}curl -O http://$BOOTSTRAP_IP:$BOOTSTRAP_PORT/$NODE_INSTALLER && sudo bash $NODE_INSTALLER ${NC} [ROLE]"
   echo -e ""
+  if [ "$INSTALL_ELK" == true ]; then
+   echo -e "** Kibana is available at: "$BOOTSTRAP_IP":5601"
+  fi
   exit 1
 else
   echo -e "** Bootstrap node installation ${RED}FAILED${NC}."
