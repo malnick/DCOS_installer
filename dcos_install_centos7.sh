@@ -726,7 +726,7 @@ fi
 #fix for Zeppelin -- add FQDN
 sudo sh -c "echo $(/opt/mesosphere/bin/detect_ip) $(hostnamectl | grep Static | cut -f2 -d: | sed 's/\ //') $(hostname -s) >> /etc/hosts"
 
-#Format the extra volumes in $CEPH_DISKS to use with CEPH
+#Install CEPH: Format the disks to use by the CEPH framework
 ####################################################################################
 
 if [ "$INSTALL_CEPH" = true ]; then 
@@ -736,11 +736,11 @@ sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 if [ $ROLE -ne "master" ]; then
 
 #format disks as XFS
-cat > ./$CEPH_FDISK << EOF
+sudo cat > ./$CEPH_FDISK << EOF
 #!/bin/sh
 hdd="$CEPH_DISKS"
 EOF
-cat >> ./$CEPH_FDISK << 'EOF'
+sudo cat >> ./$CEPH_FDISK << 'EOF' 
 for i in $hdd;do
 echo "n
 p
@@ -748,19 +748,19 @@ p
 
 
 w
-"|fdisk $i;mkfs.xfs -f $i;done
+"|sudo fdisk $i;mkfs.xfs -f $i;done
 EOF
-chmod +x ./$CEPH_FDISK
+sudo chmod +x ./$CEPH_FDISK
 ./$CEPH_FDISK
 
 #loop through the disks/volumes in $CEPH_DISKS, mount them under /dcos/volumeX
 WORDS=($CEPH_DISKS)
 COUNT=${#WORDS[@]}
 for  ((i=0; i<COUNT; i++)); do
-  mkdir -p /dcos/volume$i
+  sudo mkdir -p /dcos/volume$i
   #i-th word in string
   DISK=$( echo $CEPH_DISKS | cut -d " " -f $(($i+1)) )
-  mount $DISK /dcos/volume$i
+  sudo mount $DISK /dcos/volume$i
 done
 
 # restart mesos-slave to pick up the changes and add the new volumes
@@ -770,7 +770,7 @@ sudo rm -f /var/lib/mesos/slave/meta/slaves/latest
 sudo /opt/mesosphere/bin/make_disk_resources.py /var/lib/dcos/mesos-resources
 sudo systemctl start dcos-mesos-slave
 
-systemctl start ntpd #noticed it tends to die and Ceph requires it.
+sudo systemctl start ntpd #noticed it tends to die and Ceph requires it.
 
 fi # if $ROLE -ne "master"
 
