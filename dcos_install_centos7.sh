@@ -23,6 +23,9 @@ NTP_SERVER="pool.ntp.org"
 DNS_SERVER="8.8.8.8"
 TELEMETRY=true
 INSTALL_ELK=false
+INSTALL_CEPH=false
+CEPH_DISKS="/dev/xvdb"  #LIST OF VOLUMES to format as XFS for ceph, SPACE separated as in: 
+#"/dev/hda /dev/hdb /dev/hdc"
 
 #****************************************************************
 # These are for internal use and should not need modification
@@ -53,6 +56,7 @@ ELK_HOSTNAME=$BOOTSTRAP_IP
 ELK_PORT=9200
 FILEBEAT_JOURNALCTL_CONFIG="/etc/filebeat/filebeat_journald.yml"
 FILEBEAT_JOURNALCTL_SERVICE=dcos-journalctl-filebeat.service
+CEPH_FDISK=ceph_fdisk_headless.sh 
 
 #pretty colours
 RED='\033[0;31m'
@@ -119,6 +123,7 @@ echo "5) Installation directory:             "$WORKING_DIR
 echo "6) NTP server:                         "$NTP_SERVER
 echo "7) DNS server:                         "$DNS_SERVER
 echo "8) Install ELK on bootstrap node:      "$INSTALL_ELK
+echo "9) Install CEPH on cluster:            "$INSTALL_CEPH
 echo ""
 echo "******************************************************************************"
 
@@ -132,7 +137,7 @@ echo "**************************************************************************
           echo "** Agent installation command saved in $WORKING_DIR/$COMMAND_FILE for future use."
           break
           ;;
-    [nN]) read -p "** Enter number of parameter to modify [1-8]: " PARAMETER
+    [nN]) read -p "** Enter number of parameter to modify [1-9]: " PARAMETER
           case $PARAMETER in
             [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
                  ;;
@@ -150,7 +155,9 @@ echo "**************************************************************************
                  ;;  
             [8]) if [ "$INSTALL_ELK" == false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;
-              *) echo "** Invalid input. Please choose an option [1-8]"
+            [9]) if [ "$INSTALL_CEPH" == false ]; then INSTALL_CEPH=true; else INSTALL_CEPH=false; fi
+                 ;;
+              *) echo "** Invalid input. Please choose an option [1-9]"
                  ;;
           esac
           ;;
@@ -180,7 +187,8 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #docker engine with selinux and other requirements
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp screen 
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
+wget curl zip unzip ipset ntp screen 
 
 #jq
 wget http://stedolan.github.io/jq/download/linux64/jq
@@ -717,6 +725,58 @@ fi
 
 #fix for Zeppelin -- add FQDN
 sudo sh -c "echo $(/opt/mesosphere/bin/detect_ip) $(hostnamectl | grep Static | cut -f2 -d: | sed 's/\ //') $(hostname -s) >> /etc/hosts"
+
+#Format the extra volumes in $CEPH_DISKS to use with CEPH
+####################################################################################
+
+if [ "$INSTALL_CEPH" = true ]; then 
+
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
+
+if [ $ROLE -ne "master" ]; then
+
+#format disks as XFS
+cat > ./$CEPH_FDISK << EOF
+#!/bin/sh
+hdd="$CEPH_DISKS"
+EOF
+cat >> ./$CEPH_FDISK << 'EOF'
+for i in $hdd;do
+echo "n
+p
+1
+
+
+w
+"|fdisk $i;mkfs.xfs -f $i;done
+EOF
+chmod +x ./$CEPH_FDISK
+./$CEPH_FDISK
+
+#loop through the disks/volumes in $CEPH_DISKS, mount them under /dcos/volumeX
+WORDS=($CEPH_DISKS)
+COUNT=${#WORDS[@]}
+for  ((i=0; i<COUNT; i++)); do
+  mkdir -p /dcos/volume$i
+  #i-th word in string
+  DISK=$( echo $CEPH_DISKS | cut -d " " -f $(($i+1)) )
+  mount $DISK /dcos/volume$i
+done
+
+# restart mesos-slave to pick up the changes and add the new volumes
+sudo systemctl stop dcos-mesos-slave
+sudo rm -f /var/lib/dcos/mesos-resources
+sudo rm -f /var/lib/mesos/slave/meta/slaves/latest
+sudo /opt/mesosphere/bin/make_disk_resources.py /var/lib/dcos/mesos-resources
+sudo systemctl start dcos-mesos-slave
+
+systemctl start ntpd #noticed it tends to die and Ceph requires it.
+
+fi # if $ROLE -ne "master"
+
+EOF2
+
+fi #if [ "$INSTALL_CEPH" = true ]
 
 # $$ end of node installer
 #################################################################
