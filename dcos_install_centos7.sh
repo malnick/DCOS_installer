@@ -733,7 +733,7 @@ if [ "$INSTALL_CEPH" = true ]; then
 
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
-if [ $ROLE != "master" ]; then
+if [ "$ROLE" != "master" ]; then
 
 EOF2
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
