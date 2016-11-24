@@ -562,7 +562,6 @@ if [[ $ERROR = *[!\ ]* ]]; then
   exit 0
 else
   echo "** Node installed successfully."
-  exit 1
 fi
 EOF2
 
