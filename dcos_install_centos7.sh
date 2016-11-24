@@ -123,7 +123,7 @@ echo "5) Installation directory:             "$WORKING_DIR
 echo "6) NTP server:                         "$NTP_SERVER
 echo "7) DNS server:                         "$DNS_SERVER
 echo "8) Install ELK on bootstrap node:      "$INSTALL_ELK
-echo "9) Install CEPH on cluster:            "$INSTALL_CEPH
+echo "9) Configure cluster nodes for Ceph:   "$INSTALL_CEPH
 echo ""
 echo "******************************************************************************"
 
