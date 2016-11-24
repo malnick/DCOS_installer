@@ -56,7 +56,7 @@ ELK_HOSTNAME=$BOOTSTRAP_IP
 ELK_PORT=9200
 FILEBEAT_JOURNALCTL_CONFIG="/etc/filebeat/filebeat_journald.yml"
 FILEBEAT_JOURNALCTL_SERVICE=dcos-journalctl-filebeat.service
-CEPH_FDISK=ceph_fdisk_headless.sh 
+CEPH_FDISK=/tmp/ceph_fdisk_headless.sh 
 
 #pretty colours
 RED='\033[0;31m'
@@ -738,11 +738,11 @@ if [ $ROLE -ne "master" ]; then
 EOF2
 sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 #format disks as XFS
-sudo cat > ./$CEPH_FDISK << EOF
+sudo cat > $CEPH_FDISK << EOF
 #!/bin/sh
 hdd="$CEPH_DISKS"
 EOF
-sudo cat >> ./$CEPH_FDISK << 'EOF' 
+sudo cat >> $CEPH_FDISK << 'EOF' 
 for i in $hdd;do
 echo "n
 p
@@ -752,8 +752,8 @@ p
 w
 "|sudo fdisk $i;mkfs.xfs -f $i;done
 EOF
-sudo chmod +x ./$CEPH_FDISK
-./$CEPH_FDISK
+sudo chmod +x $CEPH_FDISK
+sudo bash $CEPH_FDISK
 
 #loop through the disks/volumes in $CEPH_DISKS, mount them under /dcos/volumeX
 WORDS=($CEPH_DISKS)
