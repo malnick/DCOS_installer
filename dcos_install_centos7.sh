@@ -731,10 +731,12 @@ sudo sh -c "echo $(/opt/mesosphere/bin/detect_ip) $(hostnamectl | grep Static | 
 
 if [ "$INSTALL_CEPH" = true ]; then 
 
-sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << 'EOF2'
 
 if [ $ROLE -ne "master" ]; then
 
+EOF2
+sudo cat >>  $WORKING_DIR/genconf/serve/$NODE_INSTALLER << EOF2
 #format disks as XFS
 sudo cat > ./$CEPH_FDISK << EOF
 #!/bin/sh
