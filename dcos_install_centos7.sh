@@ -56,7 +56,7 @@ ELK_HOSTNAME=$BOOTSTRAP_IP
 ELK_PORT=9200
 FILEBEAT_JOURNALCTL_CONFIG="/etc/filebeat/filebeat_journald.yml"
 FILEBEAT_JOURNALCTL_SERVICE=dcos-journalctl-filebeat.service
-CEPH_FDISK="/tmp/ceph_fdisk_headless.sh"
+CEPH_FDISK="/tmp/dcos/ceph_fdisk_headless.sh"
 
 #pretty colours
 RED='\033[0;31m'
