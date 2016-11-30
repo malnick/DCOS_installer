@@ -186,7 +186,7 @@ EOF
 #docker engine with selinux and other requirements
 sudo yum install -y epel-release
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.12.1-1.el7.centos.noarch \
-wget curl zip unzip ipset ntp screen git python-pip python34 jq nginx
+wget curl zip unzip ipset ntp screen git python-pip python34 jq nginx bind-utils
 curl https://bootstrap.pypa.io/get-pip.py | python3.4
 pip3 install --upgrade pip jsonschema
 
@@ -532,7 +532,7 @@ ftp://195.220.108.108/linux/centos/7.2.1511/os/x86_64/Packages/wget-1.14-10.el7_
 ftp://rpmfind.net/linux/centos/6.8/os/x86_64/Packages/nc-1.84-24.el6.x86_64.rpm
 
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
-tar xz curl screen
+tar xz curl screen bind-utils
  #zip unzip ipset ntp wget -- installed above with rpm
  
 #configure ntp"server $NTP_SERVER" 
