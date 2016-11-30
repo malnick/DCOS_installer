@@ -180,7 +180,7 @@ gpgkey=https://yum.dockerproject.org/gpg
 EOF
 
 #docker engine with selinux and other requirements
-sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp screen 
+sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos wget curl zip unzip ipset ntp screen bind-utils
 
 #jq
 wget http://stedolan.github.io/jq/download/linux64/jq
@@ -505,7 +505,7 @@ EOF
 
 #install docker engine, daemon and service, along with dependencies
 sudo yum install -y docker-engine-1.11.2-1.el7.centos docker-engine-selinux-1.11.2-1.el7.centos \
- wget tar xz curl zip unzip ipset ntp nc screen
+ wget tar xz curl zip unzip ipset ntp nc screen bind-utils
 
 #add overlay storage driver
 echo 'overlay'\
