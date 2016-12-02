@@ -881,6 +881,13 @@ fi #if INSTALL_ELK = true
 ################################################################################################################################
 ################################################################################################################################
 
+#Install requirements to run git and create a local universe (useful to write and debug packages)
+#################################################################################################
+yum install -y epel-release
+yum install -y git python-pip python34 jq nginx
+curl https://bootstrap.pypa.io/get-pip.py | python3.4
+pip3 install --upgrade pip jsonschema
+
 #Check that installation finished successfully.
 #################################################################
 sleep 3
