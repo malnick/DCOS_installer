@@ -887,6 +887,9 @@ yum install -y epel-release
 yum install -y git python-pip python34 jq nginx
 curl https://bootstrap.pypa.io/get-pip.py | python3.4
 pip3 install --upgrade pip jsonschema
+#install NPM and sql-cli to test sqlserver with sqlcmd -S sqlserver.marathon.l4lb.thisdcos.directory -U SA -P 'password'
+yum install -y npm
+npm install -g sql-cli
 
 #Check that installation finished successfully.
 #################################################################
