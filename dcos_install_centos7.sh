@@ -888,9 +888,15 @@ yum install -y git python-pip python34 jq nginx
 curl https://bootstrap.pypa.io/get-pip.py | python3.4
 pip3 install --upgrade pip jsonschema
 #install NPM and sql-cli to test sqlserver with sqlcmd -S sqlserver.marathon.l4lb.thisdcos.directory -U SA -P 'password'
-yum install -y npm
-npm install -g sql-cli
-
+sudo tee /etc/yum.repos.d/msprod.repo  <<-EOF
+[packages-microsoft-com-prod]
+name=packages-microsoft-com-prod
+baseurl=https://packages.microsoft.com/rhel/7/prod/
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF
+sudo yum -y install mssql-tools
 #Check that installation finished successfully.
 #################################################################
 sleep 3
