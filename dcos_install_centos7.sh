@@ -13,7 +13,8 @@
 #CUSTOMER_KEY="customer_key: <insert customer key here and uncomment this line>"
 USERNAME=bootstrapuser
 PASSWORD=deleteme
-DOWNLOAD_URL="https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
+DCOS_VERSION="EarlyAccess"
+DOWNLOAD_URL="https://downloads.dcos.io/dcos/${DCOS_VERSION}/dcos_generate_config.sh"
 CLI_DOWNLOAD_URL="https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.8/dcos"
 SECURITY_LEVEL="permissive" #strict|permissive|disabled
 CLUSTERNAME="DC/OS @ "$(hostname -d)
@@ -110,15 +111,16 @@ clear
 echo "** Will now install a DC/OS bootstrap node with the following parameters:"
 echo ""
 echo "*****************************          ****************"
-echo "1) Master node private IP(s):          "$MASTER_IP
+echo "1) DC/OS Version:                      "$DCOS_VERSION
+echo "2) Master node private IP(s):          "$MASTER_IP
 echo "*****************************          ****************"
-echo "2) DC/OS username:                     "$USERNAME
-echo "3) DC/OS Password:                     "$PASSWORD
-echo "4) Cluster Name:                       "$CLUSTERNAME
-echo "5) Installation directory:             "$WORKING_DIR
-echo "6) NTP server:                         "$NTP_SERVER
-echo "7) DNS server:                         "$DNS_SERVER
-echo "8) Install ELK on bootstrap node:      "$INSTALL_ELK
+echo "3) DC/OS username:                     "$USERNAME
+echo "4) DC/OS Password:                     "$PASSWORD
+echo "5) Cluster Name:                       "$CLUSTERNAME
+echo "6) Installation directory:             "$WORKING_DIR
+echo "7) NTP server:                         "$NTP_SERVER
+echo "8) DNS server:                         "$DNS_SERVER
+echo "9) Install ELK on bootstrap node:      "$INSTALL_ELK
 echo ""
 echo "******************************************************************************"
 
@@ -134,23 +136,25 @@ echo "**************************************************************************
           ;;
     [nN]) read -p "** Enter number of parameter to modify [1-8]: " PARAMETER
           case $PARAMETER in
-            [1]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
+						[1]) read -p "Enter new value for DC/OS version: " DCOS_VERSION
+								 ;;
+            [2]) read -p "Enter new value for Master node private IP(s): " MASTER_IP
                  ;;
-            [2]) read -p "Enter new value for DC/OS username: " USERNAME
+            [3]) read -p "Enter new value for DC/OS username: " USERNAME
                  ;;
-            [3]) read -p "Enter new value for DC/OS password: " PASSWORD
+            [4]) read -p "Enter new value for DC/OS password: " PASSWORD
                  ;;
-            [4]) read -p "Enter new value for Cluster Name: " CLUSTERNAME
+            [5]) read -p "Enter new value for Cluster Name: " CLUSTERNAME
                  ;;
-            [5]) read -p "Enter new value for Installation Directory: " WORKING_DIR
+            [6]) read -p "Enter new value for Installation Directory: " WORKING_DIR
                  ;;
-            [6]) read -p "Enter new value for NTP server: " NTP_SERVER
+            [7]) read -p "Enter new value for NTP server: " NTP_SERVER
                  ;;
-            [7]) read -p "Enter new value for DNS server: " DNS_SERVER
+            [8]) read -p "Enter new value for DNS server: " DNS_SERVER
                  ;;  
-            [8]) if [ "$INSTALL_ELK" == false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
+            [9]) if [ "$INSTALL_ELK" == false ]; then INSTALL_ELK=true; else INSTALL_ELK=false; fi
                  ;;
-              *) echo "** Invalid input. Please choose an option [1-8]"
+              *) echo "** Invalid input. Please choose an option [1-9]"
                  ;;
           esac
           ;;
