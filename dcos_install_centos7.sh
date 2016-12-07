@@ -712,7 +712,6 @@ sudo chkconfig filebeat on
 
 EOF2
 fi 
-#if INSTALL_ELK=true
 
 #fix for Zeppelin -- add FQDN
 sudo sh -c "echo $(/opt/mesosphere/bin/detect_ip) $(hostnamectl | grep Static | cut -f2 -d: | sed 's/\ //') $(hostname -s) >> /etc/hosts"
@@ -754,7 +753,7 @@ curl -fLsS --retry 20 -Y 100000 -y 60 $CLI_DOWNLOAD_URL -o dcos &&
  
  #Insert Mesos-DNS as resolver in bootstrap node to access *.mesos
  #################################################################
- mv /etc/resolv.conf /etc/resolv.conf.dcos #backup
+ mv /etc/resolv.conf /etc/resolv.conf.bk #backup
  echo "nameserver $MASTER_1" | cat - /etc/resolv.conf.dcos > temp && mv temp /etc/resolv.conf
 
 #Provide a first command to copy&paste so that the nodes can be installed in parallel to ELK on Bootstrap
